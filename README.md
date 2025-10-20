@@ -4,7 +4,7 @@
 
 **Course:** CSC 212 – Fall 2025  
 **Phase:** I  
-**Team:** 
+**Team:**  
 ✦ Shahad  
 ✦ Jawaher  
 ✦ Razan  
