@@ -4,11 +4,10 @@
 
 **Course:** CSC 212 – Fall 2025  
 **Phase:** I  
-**Team:** ✦ Shahad 
-          ✦ Jawaher
-          ✦ Razan
-
-
+**Team:** 
+✦ Shahad  
+✦ Jawaher  
+✦ Razan  
 
 ## Project Overview
 
