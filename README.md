@@ -17,7 +17,7 @@ This project implements a **backend system for an e-commerce business** to manag
 - Handle product reviews and ratings.
 - Generate analytics like top-rated products or common highly-rated items between customers.
 
-The system is **object-oriented** and uses **custom data structures** (arrays, linked lists, hash maps, and heaps). Java collections are **not allowed**, per project requirements.
+The system is **object-oriented** and uses **custom data structures**.
 
 ---
 
