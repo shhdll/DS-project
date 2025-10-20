@@ -1,3 +1,5 @@
+![Header](images/readme_header.png)
+
 # E-Commerce Inventory & Order Management System
 
 **Course:** CSC 212 – Fall 2025  
