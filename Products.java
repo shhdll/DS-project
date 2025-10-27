@@ -17,7 +17,7 @@ public class Products {
 //add new product to static list
     public static void addProduct(int productId, String name, int price, int stock) {
         Products newProduct = new Products(productId, name, price, stock);
-        allProducts.insert(newProduct); //add to static list ""
+        allProducts.insert(newProduct); 
     }
 
 
@@ -42,7 +42,7 @@ public class Products {
     }
 
 //search by id , "should be by name also?"
-private static Products findProductById(int productId) {
+public static Products findProductById(int productId) {
     if (allProducts.empty())
      return null; //null?
     
