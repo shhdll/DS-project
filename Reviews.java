@@ -1,13 +1,10 @@
-package ecommerce_project;
-
-import java.io.File;
-import java.util.Scanner;
+//package ecommerce_project;
 
 public class Reviews{
- Private int reviewId;
- Private int productId;
- Private int rating;
- Private int customerId;
+ private int reviewId;
+ private int productId;
+ private int rating;
+ private int customerId ;
  private String comment;
 
     public Reviews(int reviewId, int productId, int rating, int customerId, String comment) {
