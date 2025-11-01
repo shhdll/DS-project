@@ -36,7 +36,7 @@ public class Customers {  //customers represent a single customer, so maybe rena
         }
     }
     //3 View order history
-    
+   
     // getters and setters
     public int getCustomerId() { return customerId; }
     public String getName() { return name; }

@@ -79,7 +79,7 @@ public static Products findProductById(int productId) {
 
 
 
-
+ 
     public int getProductId() {
         return productId;
     }           
@@ -107,4 +107,5 @@ public static Products findProductById(int productId) {
     public void setStock(int stock) {
         this.stock = stock;
     }
+        
 }
