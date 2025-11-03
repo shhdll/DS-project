@@ -1,4 +1,3 @@
-//package ecommerce_project;
 
 public class Reviews{
  private int reviewId;
