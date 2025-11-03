@@ -120,7 +120,16 @@ public void getOutOfStockProducts() {
     }
 }
 
-
+//add review to a product
+public void addReview(Reviews r) {
+    Product p = findProductById(r.getProductId()); //find the product to which the review belongs
+    if (p != null) { 
+        p.addReview(r);
+        System.out.println("Review added for Product ID " + r.getProductId());
+    } else {
+        System.out.println("Product with ID " + r.getProductId() + " not found. Review not added.");
+    }
+}
 
  
     public int getProductId() {
