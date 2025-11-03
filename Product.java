@@ -16,7 +16,20 @@ public class Product {
         reviews.insert(review);
     }
             
-            
+     //update product 
+    public void updateProduct(String name, double price, int stock) { //should we allow updating productId?
+        if(name != null && name.length()>0) //Prevents empty and whitespace "" only strings 
+        {
+            this.name = name;
+        }
+        if(price > 0) {
+            this.price = price;
+        }   
+        if(stock >= 0) {
+            this.stock = stock;
+        }   
+    }
+       
     public int getProductId() {
         return productId;
     }           

@@ -1,81 +1,124 @@
 public class Products {
- private int productId;
- private String name;
- private double price;
- private int stock;
+private LinkedList<Product> allProducts = new LinkedList<>(); // list for all products 
 
- private LinkedList<Reviews> reviews; //Each product has its own review
- private static LinkedList<Products> allProducts = new LinkedList<>(); //static list for all products 
 
-    public Products(int productId, String name, double price, int stock) {
-            this.productId = productId;
-            this.name = name;
-            this.price = price;
-            this.stock = stock;
-            this.reviews = new LinkedList<Reviews>(); }
-
-//add new product to static list
-    public static void addProduct(int productId, String name, double price, int stock) {
-        Products newProduct = new Products(productId, name, price, stock);
-        allProducts.insert(newProduct); 
+//add new product to allProducts list
+    public void addProduct(Product p) {
+    if(p.findProductById(p.getProductId()) == null){//check if product with same ID already exists
+        allProducts.insert(product);
+        System.out.println("Product with ID " + p.getProductId() + " has been added.");
     }
-
-
-//update product 
-    public void updateProduct(String name, double price, int stock) {
-        if(name != null && name.length()>0) //Prevents empty and whitespace "" only  strings 
-        {
-            this.name = name;
-        }
-        if(price > 0) {
-            this.price = price;
-        }   
-        if(stock >= 0) {
-            this.stock = stock;
-        }   
+        else //product with same ID exists
+        System.out.println("Product with ID " + p.getProductId() + " already exists.");
     }
 
 //remove product
-    public static void removeProduct(int productId) {
-        if (allProducts.empty()) return;
+    public void removeProduct(int productId) {
+        if (allProducts.empty()) {
+         System.out.println("No products available to remove.");
+        return; }
     
     allProducts.findFirst();
     while (true) {
-        Products current = allProducts.retrieve();
-        if (current.productId == productId) {
+        Products p = allProducts.retrieve();
+        if (p.productId == productId) {
             allProducts.remove();
-            return; // Found and removed > exit
+            System.out.println("Product with ID " + productId + " has been removed.");
+            return; // Found and removed 
         }
         
         if (allProducts.last())
+        system.out.println("Product with ID " + productId + " not found.");
          break;
 
         allProducts.findNext();
     }
     }
 
-//search by id , "should be by name also?"
-public static Products findProductById(int productId) {
+//search for a product by ID
+public Product findProductById(int productId) {
     if (allProducts.empty())
-     return null; //null?
+     return null; 
     
     allProducts.findFirst();
     while (true) {
-        Products current = allProducts.retrieve();
-        if (current.productId == productId) {
-            return current; 
+        Product current1 = allProducts.retrieve();
+        if (current1.productId == productId) {
+            return current1; 
         }
         
         if (allProducts.last()) 
         break;
         allProducts.findNext();
     }
-    return null; //null?
+    return null; 
 }
 
-//Track out-of-stock products ......... 
+
+//search for a product by Name (i think it's not useful)?
+public Product findProductByName(String name) {
+    if (allProducts.empty())
+     return null; 
+    
+    allProducts.findFirst();
+    while (true) {
+        Product current2 = allProducts.retrieve();
+        if (current2.name.equals(name)) {
+            return current2; 
+        }
+        
+        if (allProducts.last()) 
+        break;
+        allProducts.findNext();
+    }
+    return null; 
+}
 
 
+//update product details
+public void updateProducts(Product p , int id){
+    if(p.findProductById(id) != null){//check if product with same ID exists
+       p.updateProduct(p.getName(), p.getPrice(), p.getStock());
+       System.out.println("Product with ID " + id + " has been updated.");
+    }
+
+    else //product with same ID does not exist
+        System.out.println("Product with ID " + id + " does not exist.");
+}
+
+//to Track out-of-stock products 
+public void getOutOfStockProducts() {
+    LinkedList<Product> outOfStockProducts = new LinkedList<>();
+    if (allProducts.empty()) {
+        return;
+    }
+    
+    allProducts.findFirst();
+    while (true) {
+        Product aProduct = allProducts.retrieve();
+        if (aProduct.getStock() == 0) {
+            outOfStockProducts.insert(aProduct);
+        }
+        if (allProducts.last()) {
+            break;
+        }
+        allProducts.findNext();
+    }
+    if (outOfStockProducts.empty()) {
+        System.out.println("No out-of-stock products.");
+    } else {
+        System.out.println("Out-of-stock products:");
+        outOfStockProducts.findFirst();
+        while (true) {
+            Product outProduct = outOfStockProducts.retrieve();
+            outProduct.displayallProducts();
+            if (outOfStockProducts.last()) {
+                break;
+            }
+            outOfStockProducts.findNext();
+        }
+    }
+}
 
 
 
@@ -108,4 +151,24 @@ public static Products findProductById(int productId) {
         this.stock = stock;
     }
         
+    public void displayallProducts() {
+        System.out.println("Product ID: " + productId);
+        System.out.println("Name: " + name);
+        System.out.println("Price: " + price);
+        System.out.println("Stock: " + stock);
+        System.out.println("Reviews:");
+       if (reviews.empty()) {
+            System.out.println("there is no reviews available.");
+        } else {
+            reviews.findFirst();
+         while (!reviews.last()) {
+                Reviews aReview = reviews.retrieve();
+                aReview.displayReviews();
+                reviews.findNext();
+            }
+           
+            Reviews lastReview = reviews.retrieve(); // to display the last review
+            lastReview.displayReviews();
+        }
+    }
 }
