@@ -4,8 +4,8 @@ private LinkedList<Product> allProducts = new LinkedList<>(); // list for all pr
 
 //add new product to allProducts list
     public void addProduct(Product p) {
-    if(p.findProductById(p.getProductId()) == null){//check if product with same ID already exists
-        allProducts.insert(product);
+    if(findProductById(p.getProductId()) == null){//check if product with same ID already exists
+        allProducts.insert(p);
         System.out.println("Product with ID " + p.getProductId() + " has been added.");
     }
         else //product with same ID exists
@@ -20,15 +20,15 @@ private LinkedList<Product> allProducts = new LinkedList<>(); // list for all pr
     
     allProducts.findFirst();
     while (true) {
-        Products p = allProducts.retrieve();
-        if (p.productId == productId) {
+        Product p = allProducts.retrieve();
+        if (p.getProductId() == productId) {
             allProducts.remove();
             System.out.println("Product with ID " + productId + " has been removed.");
             return; // Found and removed 
         }
         
         if (allProducts.last())
-        system.out.println("Product with ID " + productId + " not found.");
+        System.out.println("Product with ID " + productId + " not found.");
          break;
 
         allProducts.findNext();
@@ -43,7 +43,7 @@ public Product findProductById(int productId) {
     allProducts.findFirst();
     while (true) {
         Product current1 = allProducts.retrieve();
-        if (current1.productId == productId) {
+        if (current1.getProductId() == productId) {
             return current1; 
         }
         
@@ -131,53 +131,5 @@ public void addReview(Reviews r) {
     }
 }
 
- 
-    public int getProductId() {
-        return productId;
-    }           
-    public String getName() {
-        return name;
-    }
-    public double getPrice() {
-        return price;
-    }
-    public int getStock() {
-        return stock;
-    }
-    public LinkedList<Reviews> getReviews() {
-        return reviews;
-    }
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setPrice(double price) {
-        this.price = price;
-    }
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-        
-    public void displayallProducts() {
-        System.out.println("Product ID: " + productId);
-        System.out.println("Name: " + name);
-        System.out.println("Price: " + price);
-        System.out.println("Stock: " + stock);
-        System.out.println("Reviews:");
-       if (reviews.empty()) {
-            System.out.println("there is no reviews available.");
-        } else {
-            reviews.findFirst();
-         while (!reviews.last()) {
-                Reviews aReview = reviews.retrieve();
-                aReview.displayReviews();
-                reviews.findNext();
-            }
-           
-            Reviews lastReview = reviews.retrieve(); // to display the last review
-            lastReview.displayReviews();
-        }
-    }
+   
 }

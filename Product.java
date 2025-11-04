@@ -3,17 +3,17 @@ public class Product {
     private String name;
     private double price;
     private int stock;
-    private LinkedList<Reviews> reviews; //Each product has its own review
+    private LinkedList<Review> reviews; //Each product has its own review
 
     public Product(int productId, String name, double price, int stock) {
             this.productId = productId;
             this.name = name;
             this.price = price;
             this.stock = stock;
-            this.reviews = new LinkedList<Reviews>(); }
+            this.reviews = new LinkedList<Review>(); }
 
-    public void addReview(Reviews review) { //add review to a specific product
-        reviews.insert(review);
+    public void addReview(Review r) { //add review to a specific product
+        reviews.insert(r);
     }
             
      //update product 
@@ -30,51 +30,35 @@ public class Product {
         }   
     }
        
-    public int getProductId() {
-        return productId;
-    }           
-    public String getName() {
-        return name;
-    }
-    public double getPrice() {
-        return price;
-    }
-    public int getStock() {
-        return stock;
-    }
-    public LinkedList<Reviews> getReviews() {
-        return reviews;
-    }
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setPrice(double price) {
-        this.price = price;
-    }
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+     //getters and setters
+    public int getProductId() { return productId;}           
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public int getStock() { return stock; }
+    public LinkedList<Review> getReviews() { return reviews; }
 
-    public void displayProductDetails() {
+    public void setProductId(int productId) { this.productId = productId; }
+    public void setName(String name) { this.name = name; }
+    public void setPrice(double price) { this.price = price; }
+    public void setStock(int stock) { this.stock = stock; }
+        
+      public void displayProductDetails() {
         System.out.println("Product ID: " + productId);
         System.out.println("Name: " + name);
         System.out.println("Price: " + price);
         System.out.println("Stock: " + stock);
+
         System.out.println("Reviews:");
-       if (reviews.empty()) {
-            System.out.println("there is no reviews available.");
+        if (reviews.empty()) {
+            System.out.println("There are no reviews available.");
         } else {
             reviews.findFirst();
-         while (!reviews.last()) {
-                Reviews currentReview = reviews.retrieve();
-                currentReview.displayReviews();
+            while (!reviews.last()) {
+                Review r = reviews.retrieve();
+                r.displayReviews();
                 reviews.findNext();
             }
-           
-            Reviews lastReview = reviews.retrieve(); // to display the last review
+            Review lastReview = reviews.retrieve();
             lastReview.displayReviews();
         }
     }
