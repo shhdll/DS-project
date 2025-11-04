@@ -10,8 +10,24 @@ public class Reviews{
         r.edit(rating, comment);
 
     }
-    //get Avrage
     
+    public double AvrageRating() {
+        if (reviewList == null || reviewList.empty()) {
+            return 0;
+        }
+        double sum = 0;
+        int count = 0;
+        Node<Review> tmp = reviewList.getHead();
+        while (tmp != null) {
+            sum += tmp.data.getRating();
+            count++;
+            tmp = tmp.next;
+        }
+        if (count == 0)
+            return 0.0;
+
+        return sum / count;
+    }
  
 
 }
