@@ -62,7 +62,7 @@ public class LinkedList<T> implements List<T> {
             current = current.next;
     }
 
-    // --- Member search method version 1 ---
+    
     public boolean find(T key) {
         Node<T> tmp = head;
         while (tmp != null) {
@@ -74,4 +74,9 @@ public class LinkedList<T> implements List<T> {
         }
         return false;
     }
+    public Node<T> getHead(){return head;}
+    public Node<T> getCurrent(){return current;}
+    public Node<T> getNext(){return current.next;}
+
+
 }

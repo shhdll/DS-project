@@ -1,6 +1,6 @@
-public class Order {
+public class Order extends Node<Order>{
     private int orderId;
-    private Customers customer; 
+    private int Ocustomer; 
     private LinkedList<Products> productList;
     private double totalPrice;
     private String orderDate;
@@ -12,18 +12,20 @@ public class Order {
     CANCELED 
     } */
  
-    public Order(int orderId, Customers customer, LinkedList<Products> productList, String orderDate) {
+    public Order(int orderId, int customer, LinkedList<Products> productList, String orderDate) {
         this.orderId = orderId;
-        this.customer = customer;
+        this.Ocustomer = customer;
         this.productList = productList;
         this.orderDate = orderDate;
         this.status = "Pending"; // default status
     } 
      // getters and setters
     public int getOrderId() { return orderId; }
-    public Customers getCustomer() { return customer; }
+    public int getOcustomer() { return Ocustomer; }
     public double getTotalPrice() { return totalPrice; }
     public String getOrderDate() { return orderDate; }
     public String getStatus() { return status; }
     public LinkedList<Products> getProductList() { return productList; }
+    public void setStatus(String s){status=s;}
+    
 }
