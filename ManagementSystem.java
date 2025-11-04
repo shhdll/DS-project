@@ -18,17 +18,13 @@ public class ManagementSystem {
         String ordersFile = "dataset/orders.csv";
         String reviewsFile = "dataset/reviews.csv";
 
-        // =============================
-        // 1. Load data from CSV files
-        // =============================
+        // 1 Load data from CSV files
         loadCustomers(customersFile, customers);
         loadProducts(productsFile, products);
         loadOrders(ordersFile, orders, customers, products);
         loadReviews(reviewsFile, customers, products);
 
-        // =============================
-        // 2. Main menu
-        // =============================
+        // 2 Main menu
         boolean running = true;
         while (running) {
             System.out.println("\n=== E-Commerce Management Menu ===");
@@ -113,9 +109,7 @@ public class ManagementSystem {
         sc.close();
     }
 
-    // =============================
     // CSV loading methods
-    // =============================
     private static void loadCustomers(String filePath, Customers customers) {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
