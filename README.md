@@ -10,16 +10,20 @@
 ✦ Razan  
 
 ## Project Overview
+A backend and GUI system for an e-commerce business to manage products, customers, orders, and reviews. It helps the business:
 
-This project implements a **backend system for an e-commerce business** to manage products, customers, orders, and reviews. It helps the business:
-
-- Track inventory and stock levels.
-- Manage customer orders and order history.
-- Handle product reviews and ratings.
-- Generate analytics like top-rated products or common highly-rated items between customers.
+- Track inventory and stock levels  
+- Manage customer orders  
+- Handle product reviews  
+- Provide insights like top-rated products  
 
 The system is **object-oriented** and uses **custom data structures**.
 
----
+## Features
 
-
+- **GUI:** User-friendly interface with menu navigation  
+- **Customers:** Register and track orders  
+- **Products:** Add, search, and manage stock  
+- **Orders:** Place and view orders  
+- **Reviews:** Add and view product reviews  
+- Load initial data from CSV files
