@@ -44,4 +44,8 @@ public class Review {
     public void setProductId(int productId) {
             this.productId = productId;
         }*/
+     public void displayReviews() {
+        System.out.println("Rating: " + rating + " ★");
+        System.out.println("Comment: " + comment);
+ }
 }

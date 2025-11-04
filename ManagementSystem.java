@@ -102,7 +102,7 @@ public class ManagementSystem {
 
                 case 7:
                     running = false;
-                    System.out.println("Exiting system.");
+                    System.out.println("Thank you! see you soon");
                     break;
 
                 default:
