@@ -1,48 +1,18 @@
 
 public class Reviews{
- private int reviewId;
- private int productId;
- private int rating;
- private int customerId ;
- private String comment;
+    private LinkedList<Review> reviewList;
 
-    public Reviews(int reviewId, int productId, int rating, int customerId, String comment) {
-            this.reviewId = reviewId;
-            this.productId = productId;
-            this.rating = rating;
-            this.customerId = customerId;
-            this.comment = comment;
+    public void addReview(int reviewId, int productId, int rating, int customerId, String comment) throws InvalidRatingException{
+            Review r = new Review(/*reviewId, productId, */rating, /*customerId,*/ comment);
+            reviewList.insert(r);
         }
- public int getReviewId() {
-        return reviewId; 
-        }
+    public void editReview(Review r, int rating,String comment)throws InvalidRatingException{
+        r.edit(rating, comment);
 
- public int getProductId() {
-        return productId;
     }
- public int getRating() {
-        return rating;
-    }
- public int getCustomerId() {
-        return customerId;
-    }
- public String getComment() {
-        return comment;
-    }
- public void setReviewId(int reviewId) {
-        this.reviewId = reviewId;
-    }
-    public void setProductId(int productId) {
-            this.productId = productId;
-        }
-public void displayReviews() {
-        System.out.println("Review ID: " + reviewId);
-        System.out.println("Product ID: " + productId);
-        System.out.println("Rating: " + rating);
-        System.out.println("Customer ID: " + customerId);
-        System.out.println("Comment: " + comment);
-    }
-
+    //get Avrage
+    
+ 
 
 }
 

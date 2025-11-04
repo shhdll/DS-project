@@ -5,12 +5,7 @@ public class Order extends Node<Order>{
     private double totalPrice;
     private String orderDate;
     private String status; // "Pending", "Shipped", "Delivered", "Canceled"  //enum 
-     /*Or public enum OrderStatus {
-    PENDING,
-    SHIPPED,
-    DELIVERED,
-    CANCELED 
-    } */
+ 
  
     public Order(int orderId, int customer, LinkedList<Products> productList, String orderDate) {
         this.orderId = orderId;

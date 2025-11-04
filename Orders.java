@@ -21,7 +21,7 @@ public class Orders extends LinkedList<Order> {
     }
 
     // 3 Update order status
-    public void updateStatus(Order o , String newStatus) {
+    public void updateStatus(Order o , String newStatus) throws InvalidStatusException{
         switch(newStatus){
             case "Pending":
             case "Shipped":
@@ -32,6 +32,7 @@ public class Orders extends LinkedList<Order> {
                 break;
             default:
                 System.out.println("Status not valid! ");
+                 throw new InvalidStatusException("Invalid status: " + newStatus + ". Must be Pending, Shipped, Delivered, or Canceled.");
 
         }
        
