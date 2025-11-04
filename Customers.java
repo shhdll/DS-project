@@ -1,52 +1,75 @@
-public class Customers {  //customers represent a single customer, so maybe rename to singular? 
-    private int customerId;
-    private String name;
-    private String email;
-    private LinkedList<Orders> orders;  //linkedlist because it has easier insert and remove
+public class Customers  {  
+    
+    private LinkedList<CustomerRecord> allCustomers;
 
-    public Customers(int customerId, String name, String email) { 
-        this.customerId = customerId;
-        this.name = name;
-        this.email = email;
-        this.orders = new LinkedList<>();
-}
-
-// Operations:
-
-    //1 Register new customer
-    public static Customers registerNewCustomer(int customerId, String name, String email) {
-        return new Customers(customerId, name, email);
+    public Customers() {
+        allCustomers = new LinkedList<CustomerRecord>();
     }
+
+   // Operations:
+   //1 Register new customer
+   public void registerCustomer(int customerId, String name, String email) {
+        if (findCustomerById(customerId) != null) {
+            System.out.println("Customer already exists");
+            return;
+        }
+
+        CustomerRecord newCustomer = new CustomerRecord(customerId, name, email);
+        allCustomers.insert(newCustomer);
+        System.out.println("Customer registered successfully");
+    }
+
 
     //2 Place a new order for a specific customer
-     public void placeNewOrder(Orders order) {  //adds the new order to the end
-        if (orders == null) {  //checks if orders is not initialized. won’t happen because of constructor?
-            orders = new LinkedList<>();
+    public void placeOrder(int customerId, int orderId, LinkedList<Products> productList, String orderDate) {
+        CustomerRecord customer = findCustomerById(customerId);
+        if (customer == null) {
+            System.out.println("Customer not found :(");
+            return;
         }
 
-        // move to end then insert 
-        if (orders.empty()) {  //empty
-            orders.insert(order);
-        } else {  //not empty
-            orders.findFirst();
-            while (!orders.last()) {  
-                orders.findNext();
-            }
-            orders.insert(order);
+        Order newOrder = new Order(orderId, customerId, productList, orderDate);
+        customer.getOrders().insert(newOrder);
+        System.out.println("Order placed successfully");
+    }
+
+    //3 View order history
+    public void viewOrderHistory(int customerId) {
+        //a: customer is not found
+        CustomerRecord customer = findCustomerById(customerId);
+        if (customer == null) {
+            System.out.println("Customer not found :(");
+            return;
+        }
+        //b: customer has no orders
+        LinkedList<Order> orders = customer.getOrders();
+        if (orders.empty()) {
+            System.out.println("Customer has no orders");
+            return;
+        }
+        // display history
+        System.out.println("Order history for customer ID " + customerId + ":");
+        Node<Order> tmp = orders.getHead();
+        while (tmp != null) {
+            Order o = tmp.data;
+            System.out.println("  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
+            tmp = tmp.next;
         }
     }
-    //3 View order history
+
+     //Find customer by ID
+    public CustomerRecord findCustomerById(int customerId) {
+        if (allCustomers.empty())
+            return null;
+
+        Node<CustomerRecord> temp = allCustomers.getHead();
+        while (temp != null) {
+            if (temp.data.getCustomerId() == customerId)
+                return temp.data;
+            temp = temp.next;
+        }
+        return null;
+    }
    
-    // getters and setters
-    public int getCustomerId() { return customerId; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public LinkedList<Orders> getOrders() { return orders; }
-
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-
-
-
 
 }

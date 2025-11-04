@@ -1,4 +1,4 @@
-public class ECommerceSystem {
+public class ManagementSystem {
      public static void main(String[] args) {
         System.out.println("--- E-Commerce Inventory & Order Management System ---");
         //try {
