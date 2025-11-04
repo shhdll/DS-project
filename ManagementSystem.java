@@ -4,195 +4,157 @@ import java.util.Scanner;
 public class ManagementSystem {
 
     public static void main(String[] args) {
-        Customers customers = new Customers();
-        Products products = new Products();
+
         Scanner sc = new Scanner(System.in);
 
-        // 1. Load Customers
-        try (BufferedReader br = new BufferedReader(new FileReader("customers.csv"))) {
-            String line;
-            br.readLine(); // skip header
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                int customerId = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                String email = parts[2];
-                customers.registerCustomer(customerId, name, email);
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading customers.csv: " + e.getMessage());
-        }
+        // System data
+        Customers customers = new Customers();
+        Products products = new Products();
+        Orders orders = new Orders();
 
-        // 2. Load Products
-        try (BufferedReader br = new BufferedReader(new FileReader("products.csv"))) {
-            String line;
-            br.readLine(); // skip header
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                int productId = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                double price = Double.parseDouble(parts[2]);
-                int stock = Integer.parseInt(parts[3]);
-                Product p = new Product(productId, name, price, stock);
-                products.addProduct(p);
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading products.csv: " + e.getMessage());
-        }
+        // File paths
+        String customersFile = "dataset/customers.csv";
+        String productsFile = "dataset/products.csv";
+        String ordersFile = "dataset/orders.csv";
+        String reviewsFile = "dataset/reviews.csv";
 
-        // 3. Load Orders
-        try (BufferedReader br = new BufferedReader(new FileReader("orders.csv"))) {
-            String line;
-            br.readLine(); // skip header
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                int orderId = Integer.parseInt(parts[0]);
-                int customerId = Integer.parseInt(parts[1]);
-                String[] productIds = parts[2].split(";");
-                LinkedList<Product> productList = new LinkedList<>();
-                double total = 0;
-                for (String pid : productIds) {
-                    Product p = products.findProductById(Integer.parseInt(pid));
-                    if (p != null) {
-                        productList.insert(p);
-                        total += p.getPrice();
-                    }
-                }
-                String date = parts[4];
-                String status = parts[5];
-                Order o = new Order(orderId, customerId, productList, date);
-                o.setStatus(status);
-                o.setTotalPrice(total);
-                customers.placeOrder(customerId, orderId, productList, date);
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading orders.csv: " + e.getMessage());
-        }
+        // =============================
+        // 1. Load data from CSV files
+        // =============================
+        loadCustomers(customersFile, customers);
+        loadProducts(productsFile, products);
+        loadOrders(ordersFile, orders, customers, products);
+        loadReviews(reviewsFile, customers, products);
 
-        // 4. Load Reviews
-        try (BufferedReader br = new BufferedReader(new FileReader("reviews.csv"))) {
-            String line;
-            br.readLine(); // skip header
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                int productId = Integer.parseInt(parts[1]);
-                int customerId = Integer.parseInt(parts[2]);
-                int rating = Integer.parseInt(parts[3]);
-                String comment = parts[4];
-                try {
-                    Review r = new Review(rating, comment);
-                    products.addReview(r);
-                    CustomerRecord c = customers.findCustomerById(customerId);
-                    if (c != null) c.addReview(r);
-                } catch (InvalidRatingException e) {
-                    System.out.println("Invalid rating in CSV: " + e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading reviews.csv: " + e.getMessage());
-        }
-
-        // 5. Menu
-        while (true) {
-            System.out.println("\n--- E-Commerce System Menu ---");
-            System.out.println("1. View all customers");
-            System.out.println("2. View all products");
-            System.out.println("3. Place new order");
-            System.out.println("4. Add product");
-            System.out.println("5. Add customer");
-            System.out.println("6. Add review");
-            System.out.println("7. View order history for a customer");
-            System.out.println("8. Exit");
-            System.out.print("Choose option: ");
-            int choice = Integer.parseInt(sc.nextLine());
+        // =============================
+        // 2. Main menu
+        // =============================
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== E-Commerce Management Menu ===");
+            System.out.println("1. Add Customer");
+            System.out.println("2. Add Product");
+            System.out.println("3. Place Order");
+            System.out.println("4. Add Review");
+            System.out.println("5. View Customer Orders");
+            System.out.println("6. View Product Details");
+            System.out.println("7. Exit");
+            System.out.print("Select an option: ");
+            int choice = sc.nextInt();
+            sc.nextLine(); // consume newline
 
             switch (choice) {
-                case 1 -> {
-                    Node<CustomerRecord> tmp = customers.getAllCustomers().getHead();
-                    while (tmp != null) {
-                        System.out.println(tmp.data);
-                        tmp = tmp.next;
-                    }
-                }
-                case 2 -> {
-                    Node<Product> tmp = products.getAllProducts().getHead();
-                    while (tmp != null) {
-                        tmp.data.displayProductDetails();
-                        tmp = tmp.next;
-                    }
-                }
-                case 3 -> {
+                case 1:
+                    // Add customer
                     System.out.print("Customer ID: ");
-                    int cid = Integer.parseInt(sc.nextLine());
-                    System.out.print("Order ID: ");
-                    int oid = Integer.parseInt(sc.nextLine());
-                    LinkedList<Product> orderProducts = new LinkedList<>();
-                    System.out.print("Enter product IDs separated by ;: ");
-                    String[] pids = sc.nextLine().split(";");
-                    double total = 0;
-                    for (String pid : pids) {
-                        Product p = products.findProductById(Integer.parseInt(pid));
-                        if (p != null) {
-                            orderProducts.insert(p);
-                            total += p.getPrice();
-                        }
-                    }
-                    System.out.print("Enter order date (MM/DD/YYYY): ");
-                    String date = sc.nextLine();
-                    Order o = new Order(oid, cid, orderProducts, date);
-                    o.setTotalPrice(total);
-                    customers.placeOrder(cid, oid, orderProducts, date);
-                }
-                case 4 -> {
-                    System.out.print("Product ID: ");
-                    int pid = Integer.parseInt(sc.nextLine());
+                    int cid = sc.nextInt(); sc.nextLine();
                     System.out.print("Name: ");
-                    String name = sc.nextLine();
-                    System.out.print("Price: ");
-                    double price = Double.parseDouble(sc.nextLine());
-                    System.out.print("Stock: ");
-                    int stock = Integer.parseInt(sc.nextLine());
-                    Product p = new Product(pid, name, price, stock);
-                    products.addProduct(p);
-                }
-                case 5 -> {
-                    System.out.print("Customer ID: ");
-                    int cid = Integer.parseInt(sc.nextLine());
-                    System.out.print("Name: ");
-                    String name = sc.nextLine();
+                    String cname = sc.nextLine();
                     System.out.print("Email: ");
-                    String email = sc.nextLine();
-                    customers.registerCustomer(cid, name, email);
-                }
-                case 6 -> {
-                    System.out.print("Customer ID: ");
-                    int cid = Integer.parseInt(sc.nextLine());
+                    String cemail = sc.nextLine();
+                    customers.registerCustomer(cid, cname, cemail);
+                    break;
+
+                case 2:
+                    // Add product
                     System.out.print("Product ID: ");
-                    int pid = Integer.parseInt(sc.nextLine());
-                    System.out.print("Rating (1-5): ");
-                    int rating = Integer.parseInt(sc.nextLine());
-                    System.out.print("Comment: ");
-                    String comment = sc.nextLine();
-                    try {
-                        Review r = new Review(rating, comment);
-                        products.addReview(r);
-                        CustomerRecord c = customers.findCustomerById(cid);
-                        if (c != null) c.addReview(r);
-                    } catch (InvalidRatingException e) {
-                        System.out.println("Invalid rating: " + e.getMessage());
-                    }
-                }
-                case 7 -> {
+                    int pid = sc.nextInt(); sc.nextLine();
+                    System.out.print("Name: ");
+                    String pname = sc.nextLine();
+                    System.out.print("Price: ");
+                    double price = sc.nextDouble(); sc.nextLine();
+                    System.out.print("Stock: ");
+                    int stock = sc.nextInt(); sc.nextLine();
+                    Product newProduct = new Product(pid, pname, price, stock);
+                    products.addProduct(newProduct);
+                    break;
+
+                case 3:
+                    // Place order
+                    // TODO: Implement order creation
+                    System.out.println("Place order functionality goes here.");
+                    break;
+
+                case 4:
+                    // Add review
+                    // TODO: Implement review creation
+                    System.out.println("Add review functionality goes here.");
+                    break;
+
+                case 5:
+                    // View customer orders
                     System.out.print("Customer ID: ");
-                    int cid = Integer.parseInt(sc.nextLine());
-                    customers.viewOrderHistory(cid);
-                }
-                case 8 -> {
-                    System.out.println("Exiting...");
-                    System.exit(0);
-                }
-                default -> System.out.println("Invalid option");
+                    int viewCid = sc.nextInt(); sc.nextLine();
+                    customers.viewOrderHistory(viewCid);
+                    break;
+
+                case 6:
+                    // View product details
+                    System.out.print("Product ID: ");
+                    int viewPid = sc.nextInt(); sc.nextLine();
+                    Product p = products.findProductById(viewPid);
+                    if (p != null) {
+                        p.displayProductDetails();
+                    } else {
+                        System.out.println("Product not found.");
+                    }
+                    break;
+
+                case 7:
+                    running = false;
+                    System.out.println("Exiting system.");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Try again.");
             }
         }
+
+        sc.close();
+    }
+
+    // =============================
+    // CSV loading methods
+    // =============================
+    private static void loadCustomers(String filePath, Customers customers) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            br.readLine(); // skip header
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                int id = Integer.parseInt(parts[0].trim());
+                String name = parts[1].trim();
+                String email = parts[2].trim();
+                customers.registerCustomer(id, name, email);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading customers: " + e.getMessage());
+        }
+    }
+
+    private static void loadProducts(String filePath, Products products) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            br.readLine(); // skip header
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                int id = Integer.parseInt(parts[0].trim());
+                String name = parts[1].trim();
+                double price = Double.parseDouble(parts[2].trim());
+                int stock = Integer.parseInt(parts[3].trim());
+                Product p = new Product(id, name, price, stock);
+                products.addProduct(p);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading products: " + e.getMessage());
+        }
+    }
+
+    private static void loadOrders(String filePath, Orders orders, Customers customers, Products products) {
+        // TODO: Implement reading orders from CSV and adding to customer orders
+    }
+
+    private static void loadReviews(String filePath, Customers customers, Products products) {
+        // TODO: Implement reading reviews from CSV and adding to products/customers
     }
 }

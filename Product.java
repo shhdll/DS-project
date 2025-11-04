@@ -10,7 +10,7 @@ public class Product {
             this.name = name;
             this.price = price;
             this.stock = stock;
-            this.reviews = new LinkedList<Reviews(); }
+            this.reviews = new LinkedList<Reviews>(); }
 
     public void addReview(Reviews review) { //add review to a specific product
         reviews.insert(review);
@@ -58,7 +58,7 @@ public class Product {
         this.stock = stock;
     }
 
-    public void display ProductDetails() {
+    public void displayProductDetails() {
         System.out.println("Product ID: " + productId);
         System.out.println("Name: " + name);
         System.out.println("Price: " + price);
