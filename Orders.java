@@ -1,15 +1,20 @@
+
 public class Orders extends LinkedList<Order> {
-   private LinkedList<Order> orderList;
+
+    private LinkedList<Order> orderList;
+
     public Orders() {
         orderList = new LinkedList<Order>();
-        
+
     }
-     //Operations
+    //Operations
     // 1 create order 
-    public void createOrder(int orderId, int Ocustomer, LinkedList<Product> productList, String orderDate){
-        Order o = new Order( orderId, Ocustomer, productList, orderDate);
+
+    public void createOrder(int orderId, int Ocustomer, LinkedList<Product> productList, String orderDate) {
+        Order o = new Order(orderId, Ocustomer, productList, orderDate);
         orderList.insert(o);
     }
+
     // 2 Cancel order
     public void cancelOrder(Order o) {
         if (!o.getStatus().equalsIgnoreCase("Delivered")) {
@@ -21,24 +26,25 @@ public class Orders extends LinkedList<Order> {
     }
 
     // 3 Update order status
-    public void updateStatus(Order o , String newStatus) throws InvalidStatusException{
-        switch(newStatus){
+    public void updateStatus(Order o, String newStatus) throws InvalidStatusException {
+        switch (newStatus) {
             case "Pending":
             case "Shipped":
             case "Delivered":
             case "Canceled":
                 o.setStatus(newStatus);
-                 System.out.println("Order " + o.getOrderId() + " status updated to: " + newStatus);
+                System.out.println("Order " + o.getOrderId() + " status updated to: " + newStatus);
                 break;
             default:
                 System.out.println("Status not valid! ");
-                 throw new InvalidStatusException("Invalid status: " + newStatus + ". Must be Pending, Shipped, Delivered, or Canceled.");
+                throw new InvalidStatusException("Invalid status: " + newStatus + ". Must be Pending, Shipped, Delivered, or Canceled.");
 
         }
-       
+
     }
+
     // 3 Search order by ID 
-   public Order searchOrder(int ID) {
+    public Order searchOrder(int ID) {
         Node<Order> tmp = orderList.getHead();
         while (tmp != null) {
             Order order = tmp.data;
@@ -50,24 +56,26 @@ public class Orders extends LinkedList<Order> {
         System.out.println("Order Not found");
         return null;
     }
+
     //All Orders between two dates
-    public void showOrdersBetween(String start, String end) {
-    Node<Order> current = orderList.getHead();
+    public String showOrdersBetween(String start, String end) {
+        Node<Order> current = orderList.getHead();
+        StringBuilder sb = new StringBuilder();
 
-    while (current != null) {
-        Order o = current.data;
-        String date = o.getOrderDate();
+        while (current != null) {
+            Order o = current.data;
+            String date = o.getOrderDate();
 
-        if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
-            System.out.println("Order ID: " + o.getOrderId() + ", Date: " + o.getOrderDate());
+            if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
+                sb.append("Order ID: ").append(o.getOrderId())
+                        .append(", Date: ").append(o.getOrderDate())
+                        .append("\n");
+            }
+
+            current = current.next;
         }
 
-        current = current.next;
+        return sb.toString();
     }
-}
 
-
-
-    
-
-}
+} 
