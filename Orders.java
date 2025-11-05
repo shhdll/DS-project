@@ -6,7 +6,7 @@ public class Orders extends LinkedList<Order> {
     }
      //Operations
     // 1 create order 
-    public void createOrder(int orderId, int Ocustomer, LinkedList<Products> productList, String orderDate){
+    public void createOrder(int orderId, int Ocustomer, LinkedList<Product> productList, String orderDate){
         Order o = new Order( orderId, Ocustomer, productList, orderDate);
         orderList.insert(o);
     }

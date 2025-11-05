@@ -1,6 +1,11 @@
 
 public class Reviews{
     private LinkedList<Review> reviewList;
+    
+
+    public void Reviews() {
+        this.reviewList = new LinkedList<Review>();
+    }
 
     public void addReview(int reviewId, int productId, int rating, int customerId, String comment) throws InvalidRatingException{
             Review r = new Review(/*reviewId, productId, */rating, /*customerId,*/ comment);
