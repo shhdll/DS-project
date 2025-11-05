@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -34,7 +35,8 @@ public class ManagementSystem {
             System.out.println("4. Add Review");
             System.out.println("5. View Customer Orders");
             System.out.println("6. View Product Details");
-            System.out.println("7. Exit");
+            System.out.println("7. View Orders Between Two Dates");
+            System.out.println("8. Exit");
             System.out.print("Select an option: ");
             int choice = sc.nextInt();
             sc.nextLine(); // consume newline
@@ -43,7 +45,8 @@ public class ManagementSystem {
                 case 1:
                     // Add customer
                     System.out.print("Customer ID: ");
-                    int cid = sc.nextInt(); sc.nextLine();
+                    int cid = sc.nextInt();
+                    sc.nextLine();
                     System.out.print("Name: ");
                     String cname = sc.nextLine();
                     System.out.print("Email: ");
@@ -54,40 +57,43 @@ public class ManagementSystem {
                 case 2:
                     // Add product
                     System.out.print("Product ID: ");
-                    int pid = sc.nextInt(); sc.nextLine();
+                    int pid = sc.nextInt();
+                    sc.nextLine();
                     System.out.print("Name: ");
                     String pname = sc.nextLine();
                     System.out.print("Price: ");
-                    double price = sc.nextDouble(); sc.nextLine();
+                    double price = sc.nextDouble();
+                    sc.nextLine();
                     System.out.print("Stock: ");
-                    int stock = sc.nextInt(); sc.nextLine();
+                    int stock = sc.nextInt();
+                    sc.nextLine();
                     Product newProduct = new Product(pid, pname, price, stock);
                     products.addProduct(newProduct);
                     break;
 
                 case 3:
                     // Place order
-                    // TODO: Implement order creation
                     System.out.println("Place order functionality goes here.");
                     break;
 
                 case 4:
                     // Add review
-                    // TODO: Implement review creation
                     System.out.println("Add review functionality goes here.");
                     break;
 
                 case 5:
                     // View customer orders
                     System.out.print("Customer ID: ");
-                    int viewCid = sc.nextInt(); sc.nextLine();
+                    int viewCid = sc.nextInt();
+                    sc.nextLine();
                     customers.viewOrderHistory(viewCid);
                     break;
 
                 case 6:
                     // View product details
                     System.out.print("Product ID: ");
-                    int viewPid = sc.nextInt(); sc.nextLine();
+                    int viewPid = sc.nextInt();
+                    sc.nextLine();
                     Product p = products.findProductById(viewPid);
                     if (p != null) {
                         p.displayProductDetails();
@@ -97,6 +103,16 @@ public class ManagementSystem {
                     break;
 
                 case 7:
+                    // View orders between two dates
+                    System.out.print("Enter start date (YYYY-MM-DD): ");
+                    String startDate = sc.nextLine();
+                    System.out.print("Enter end date (YYYY-MM-DD): ");
+                    String endDate = sc.nextLine();
+                    System.out.println("\nOrders between " + startDate + " and " + endDate + ":");
+                    orders.showOrdersBetween(startDate, endDate);
+                    break;
+
+                case 8:
                     running = false;
                     System.out.println("Thank you! see you soon");
                     break;

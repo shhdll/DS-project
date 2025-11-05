@@ -36,7 +36,6 @@ public class Orders extends LinkedList<Order> {
 
         }
        
-       
     }
     // 3 Search order by ID 
    public Order searchOrder(int ID) {
@@ -51,6 +50,22 @@ public class Orders extends LinkedList<Order> {
         System.out.println("Order Not found");
         return null;
     }
+    //All Orders between two dates
+    public void showOrdersBetween(String start, String end) {
+    Node<Order> current = orderList.getHead();
+
+    while (current != null) {
+        Order o = current.data;
+        String date = o.getOrderDate();
+
+        if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
+            System.out.println("Order ID: " + o.getOrderId() + ", Date: " + o.getOrderDate());
+        }
+
+        current = current.next;
+    }
+}
+
 
 
     
