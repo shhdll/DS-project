@@ -2,14 +2,14 @@ public class Review {
  //private int reviewId;
  //private int productId;
  private int rating;
- //private int customerId ;
+ private int customerId ;
  private String comment;
 
     public Review(/*int reviewId, int productId,*/ int rating,/*  int customerId,*/ String comment)  throws InvalidRatingException{
             //this.reviewId = reviewId;
             //this.productId = productId;
             setRating(rating);
-            //this.customerId = customerId;
+            this.customerId = customerId;
             this.comment = comment;
         }
     public void edit(int rating,String comment) throws InvalidRatingException{
@@ -32,9 +32,9 @@ public class Review {
  public int getRating() {
         return rating;
     }
- /*public int getCustomerId() {
+ public int getCustomerId() {
         return customerId;
-    }*/
+    }
  public String getComment() {
         return comment;
     }/* 

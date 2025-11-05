@@ -21,7 +21,7 @@ public class Customers  {
 
 
     //2 Place a new order for a specific customer
-    public void placeOrder(int customerId, int orderId, LinkedList<Products> productList, String orderDate) {
+    public void placeOrder(int customerId, int orderId, LinkedList<Product> productList, String orderDate) {
         CustomerRecord customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found :(");

@@ -1,13 +1,13 @@
-public class Order extends Node<Order>{
+public class Order{
     private int orderId;
     private int Ocustomer; 
-    private LinkedList<Products> productList;
+    private LinkedList<Product> productList;
     private double totalPrice;
     private String orderDate;
     private String status; // "Pending", "Shipped", "Delivered", "Canceled"  //enum 
  
  
-    public Order(int orderId, int customer, LinkedList<Products> productList, String orderDate) {
+    public Order(int orderId, int customer, LinkedList<Product> productList, String orderDate) {
         this.orderId = orderId;
         this.Ocustomer = customer;
         this.productList = productList;
@@ -20,7 +20,7 @@ public class Order extends Node<Order>{
     public double getTotalPrice() { return totalPrice; }
     public String getOrderDate() { return orderDate; }
     public String getStatus() { return status; }
-    public LinkedList<Products> getProductList() { return productList; }
+    public LinkedList<Product> getProductList() { return productList; }
     public void setStatus(String s){status=s;}
     
 }
