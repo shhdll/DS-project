@@ -5,8 +5,8 @@ public class Products {
     public void addProduct(Product p) {
         if (findProductById(p.getProductId()) == null) { // check if product with same ID already exists
             allProducts.insert(p);
-            //System.out.println("Product with ID " + p.getProductId() + " has been added.");
-        }// else // product with same ID exists
+           // System.out.println("Product with ID " + p.getProductId() + " has been added.");
+        } //else // product with same ID exists
             //System.out.println("Product with ID " + p.getProductId() + " already exists.");
     }
 

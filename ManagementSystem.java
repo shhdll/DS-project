@@ -237,6 +237,10 @@ public class ManagementSystem {
                 int quoteStart = tmpData.indexOf('"');
                 int quoteEnd = tmpData.indexOf('"', quoteStart + 1);
                 String productIdsText = tmpData.substring(quoteStart + 1, quoteEnd);
+                
+                totalPrice = Double.parseDouble(tmpData.substring(thirdComma + 1, fourthComma));
+                orderDate = tmpData.substring(fourthComma + 1, fifthComma);
+                status = tmpData.substring(fifthComma + 1);
                 int k = 0;
                 while (k < productIdsText.length()) {
                     int index = productIdsText.indexOf(';', k);
@@ -246,14 +250,13 @@ public class ManagementSystem {
                         int productId = Integer.parseInt(productIdText);
                         Product found = products.findProductById(productId);
                         if (found != null) {
-                            products.addProduct(found);
+                            Order o = new Order(orderId,customerId,orderProducts,orderDate);
+                            o.addProduct(found);
                         }
 
                         k = index + 1;
                 }
-                totalPrice = Double.parseDouble(tmpData.substring(thirdComma + 1, fourthComma));
-                orderDate = tmpData.substring(fourthComma + 1, fifthComma);
-                status = tmpData.substring(fifthComma + 1);
+                
                 orders.createOrder(orderId,customerId,orderProducts,orderDate);
             }
         } catch (FileNotFoundException e) {

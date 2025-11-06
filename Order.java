@@ -14,6 +14,11 @@ public class Order{
         this.orderDate = orderDate;
         this.status = "Pending"; // default status
     } 
+
+     public void addProduct( Product P){
+  
+        productList.insert(P);
+    }
      // getters and setters
     public int getOrderId() { return orderId; }
     public int getOcustomer() { return customerID; }
