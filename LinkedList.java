@@ -62,7 +62,6 @@ public class LinkedList<T> implements List<T> {
             current = current.next;
     }
 
-    
     public boolean find(T key) {
         Node<T> tmp = head;
         while (tmp != null) {
@@ -74,20 +73,27 @@ public class LinkedList<T> implements List<T> {
         }
         return false;
     }
-    
+
     public int size() {
-    int count = 0;
-    Node<T> tmp = head;
-    while (tmp != null) {
-        count++;
-        tmp = tmp.next;
-    }
-    return count;
+        int count = 0;
+        Node<T> tmp = head;
+        while (tmp != null) {
+            count++;
+            tmp = tmp.next;
+        }
+        return count;
     }
 
-    public Node<T> getHead(){return head;}
-    public Node<T> getCurrent(){return current;}
-    public Node<T> getNext(){return current.next;}
+    public Node<T> getHead() {
+        return head;
+    }
 
+    public Node<T> getCurrent() {
+        return current;
+    }
+
+    public Node<T> getNext() {
+        return current.next;
+    }
 
 }

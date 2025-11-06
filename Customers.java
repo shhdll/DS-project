@@ -1,14 +1,14 @@
-public class Customers  {  
-    
+public class Customers {
+
     private LinkedList<CustomerRecord> allCustomers;
 
     public Customers() {
         allCustomers = new LinkedList<CustomerRecord>();
     }
 
-   // Operations:
-   //1 Register new customer
-   public void registerCustomer(int customerId, String name, String email) {
+    // Operations:
+    // 1 Register new customer
+    public void registerCustomer(int customerId, String name, String email) {
         if (findCustomerById(customerId) != null) {
             System.out.println("Customer already exists");
             return;
@@ -16,11 +16,10 @@ public class Customers  {
 
         CustomerRecord newCustomer = new CustomerRecord(customerId, name, email);
         allCustomers.insert(newCustomer);
-        //System.out.println("Customer registered successfully");
+        // System.out.println("Customer registered successfully");
     }
 
-
-    //2 Place a new order for a specific customer
+    // 2 Place a new order for a specific customer
     public void placeOrder(int customerId, int orderId, LinkedList<Product> productList, String orderDate) {
         CustomerRecord customer = findCustomerById(customerId);
         if (customer == null) {
@@ -33,15 +32,15 @@ public class Customers  {
         System.out.println("Order placed successfully");
     }
 
-    //3 View order history
+    // 3 View order history
     public void viewOrderHistory(int customerId) {
-        //a: customer is not found
+        // a: customer is not found
         CustomerRecord customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found :(");
             return;
         }
-        //b: customer has no orders
+        // b: customer has no orders
         LinkedList<Order> orders = customer.getOrders();
         if (orders.empty()) {
             System.out.println("Customer has no orders");
@@ -52,12 +51,13 @@ public class Customers  {
         Node<Order> tmp = orders.getHead();
         while (tmp != null) {
             Order o = tmp.data;
-            System.out.println("  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
+            System.out.println(
+                    "  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
             tmp = tmp.next;
         }
     }
 
-     //Find customer by ID
+    // Find customer by ID
     public CustomerRecord findCustomerById(int customerId) {
         if (allCustomers.empty())
             return null;
@@ -70,6 +70,7 @@ public class Customers  {
         }
         return null;
     }
+
     public String toString() {
         String result = "";
 
@@ -80,11 +81,30 @@ public class Customers  {
         allCustomers.findFirst();
         while (true) {
             result += allCustomers.retrieve().toString() + "\n";
-            if (allCustomers.last()) break;
+            if (allCustomers.last())
+                break;
             allCustomers.findNext();
         }
 
         return result;
+    }
+
+    // 4 Extract customer reviews
+    public void extractCustomerReviews(int customerId) {
+        CustomerRecord customer = findCustomerById(customerId);
+        if (customer == null) {
+            System.out.println("Customer not found");
+            return;
+        }
+
+        System.out.println(" Reviews by Customer " + customerId);
+        Node<Review> tmp = customer.getReviews().getHead();
+        while (tmp != null) {
+            Review r = tmp.data;
+            System.out.println("- Product " + r.getProductId() + ": " +
+                    r.getRating() + " - " + r.getComment());
+            tmp = tmp.next;
+        }
     }
 
 }

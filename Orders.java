@@ -7,8 +7,8 @@ public class Orders extends LinkedList<Order> {
         orderList = new LinkedList<Order>();
 
     }
-    //Operations
-    // 1 create order 
+    // Operations
+    // 1 create order
 
     public void createOrder(int orderId, int customerID, LinkedList<Product> productList, String orderDate) {
         Order o = new Order(orderId, customerID, productList, orderDate);
@@ -37,13 +37,14 @@ public class Orders extends LinkedList<Order> {
                 break;
             default:
                 System.out.println("Status not valid! ");
-                throw new InvalidStatusException("Invalid status: " + newStatus + ". Must be Pending, Shipped, Delivered, or Canceled.");
+                throw new InvalidStatusException(
+                        "Invalid status: " + newStatus + ". Must be Pending, Shipped, Delivered, or Canceled.");
 
         }
 
     }
 
-    // 3 Search order by ID 
+    // 3 Search order by ID
     public Order searchOrder(int ID) {
         Node<Order> tmp = orderList.getHead();
         while (tmp != null) {
@@ -57,7 +58,7 @@ public class Orders extends LinkedList<Order> {
         return null;
     }
 
-    //All Orders between two dates
+    // All Orders between two dates
     public String showOrdersBetween(String start, String end) {
         Node<Order> current = orderList.getHead();
         StringBuilder sb = new StringBuilder();
@@ -77,6 +78,23 @@ public class Orders extends LinkedList<Order> {
 
         return sb.toString();
     }
-   
 
-} 
+    public void displayAllOrders() {
+        System.out.println("=== All Orders ===");
+        if (orderList.empty()) {
+            System.out.println("No orders found.");
+            return;
+        }
+
+        Node<Order> tmp = orderList.getHead();
+        int count = 1;
+        while (tmp != null) {
+            Order order = tmp.data;
+            System.out.println(count + ". Order ID: " + order.getOrderId() + ", Customer: " + order.getOcustomer() +
+                    ", Date: " + order.getOrderDate() + ", Status: " + order.getStatus());
+            tmp = tmp.next;
+            count++;
+        }
+        System.out.println("Total: " + (count - 1) + " orders");
+    }
+}

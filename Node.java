@@ -12,4 +12,3 @@ public class Node<T> {
         next = null;
     }
 }
-

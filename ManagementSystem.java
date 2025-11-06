@@ -24,26 +24,26 @@ public class ManagementSystem {
         loadCustomers(customersFile, customers);
         loadProducts(productsFile, products);
         loadOrders(ordersFile, orders, customers, products);
-        loadReviews(reviewsFile,reviews, customers, products);
-       
+        loadReviews(reviewsFile, reviews, customers, products);
+
         // 2 Main menu
         boolean running = true;
         while (running) {
-            System.out.println("\n=== Welcome to E-Commerce Management ===");
-            System.out.println("--------------------------------");                                 
+            System.out.println("\n **** Welcome to E-Commerce Management **** ");
+            System.out.println("--------------------------------");
             System.out.println("1. Add Product");
             System.out.println("2. Add Customer");
             System.out.println("3. Place New Order");
             System.out.println("4. View Customer Orders");
-            System.out.println("5. Add Review for Product"); 
+            System.out.println("5. Add Review for Product");
             System.out.println("6. Extract Reviews from Specific Customer");
             System.out.println("7. Show Top 3 Products by Average Rating");
             System.out.println("8. View All Orders Between Two Dates");
             System.out.println("9. Common Reviewed Products Between Two Customers");
             System.out.println("10. Exit");
-            System.out.println("--------------------------------");                                 
+            System.out.println("--------------------------------");
             System.out.print("Select an option: ");
-            
+
             int choice;
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
@@ -57,6 +57,7 @@ public class ManagementSystem {
             switch (choice) {
                 case 1:
                     // Add Product (Updated menu order, logic remains the same)
+                    System.out.println("\n* ========== ADD PRODUCT ========== *");
                     System.out.print("Product ID: ");
                     int pid = sc.nextInt();
                     sc.nextLine();
@@ -73,7 +74,7 @@ public class ManagementSystem {
                     break;
 
                 case 2:
-                    // Add Customer (Updated menu order, logic remains the same)
+                    System.out.println("\n* ========== ADD CUSTOMER ========== *");
                     System.out.print("Customer ID: ");
                     int cid = sc.nextInt();
                     sc.nextLine();
@@ -83,57 +84,139 @@ public class ManagementSystem {
                     String cemail = sc.nextLine();
                     customers.registerCustomer(cid, cname, cemail);
                     break;
-                
+
                 case 3:
                     // Place New Order
-                    System.out.println("--- Place New Order ---");
-                    System.out.println("Place order functionality goes here.");
+                    System.out.println("\n* ========== PLACE NEW ORDER ========== *");
+                    System.out.println("\n--- AVAILABLE PRODUCTS ---");
+                    products.displayAllProducts();
+
+                    System.out.print("Enter Customer ID: ");
+                    int orderCustomerId = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter Order ID: ");
+                    int newOrderId = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter Order Date (YYYY-MM-DD): ");
+                    String newOrderDate = sc.nextLine();
+
+                    // Create product list for the order
+                    LinkedList<Product> selectedProducts = new LinkedList<>();
+                    boolean addingProducts = true;
+
+                    System.out.println("\n--- ADD PRODUCTS TO ORDER ---");
+                    while (addingProducts) {
+                        System.out.print("Enter Product ID from list above (-1 to checkout): ");
+                        int productId = sc.nextInt();
+                        sc.nextLine();
+
+                        if (productId == -1) {
+                            addingProducts = false;
+                        } else {
+                            Product product = products.findProductById(productId);
+                            if (product != null) {
+                                selectedProducts.insert(product);
+                                System.out.println(
+                                        "Added: " + product.getName() + " | Price: " + product.getPrice() + " SAR\"");
+                            } else {
+                                System.out.println("Product ID " + productId + " not found");
+                            }
+                        }
+                    }
+
+                    if (!selectedProducts.empty()) {
+                        customers.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
+                        System.out.println("Order placed successfully!");
+                    } else {
+                        System.out.println("No products added. Order cancelled.");
+                    }
                     break;
 
                 case 4:
                     // View Customer Orders
+                    System.out.println("\n* ========== VIEW CUSTOMER ORDERS ========== *");
+
                     System.out.print("Enter Customer ID to view orders: ");
                     int viewCid = sc.nextInt();
                     sc.nextLine();
                     customers.viewOrderHistory(viewCid);
                     break;
-                
+
                 case 5:
                     // Add Review for Product
-                    System.out.println("--- Add Review for Product ---");
-                    System.out.println("Add review functionality goes here.");
+                    System.out.println("\n* ========== ADD PRODUCT REVIEW ========== *");
+                    // Get review details
+                    System.out.print("Enter Review ID: ");
+                    int newReviewId = sc.nextInt();
+                    sc.nextLine();
+
+                    System.out.print("Enter Product ID: ");
+                    int reviewProductId = sc.nextInt();
+                    sc.nextLine();
+
+                    System.out.print("Enter Customer ID: ");
+                    int reviewCustomerId = sc.nextInt();
+                    sc.nextLine();
+
+                    System.out.print("Enter Rating (1-5 stars): ");
+                    int newRating = sc.nextInt();
+                    sc.nextLine();
+
+                    System.out.print("Enter Review Comment: ");
+                    String newComment = sc.nextLine();
+
+                    try {
+                        // Create and add the review
+                        Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId,
+                                newComment);
+                        products.addReview(reviewProductId, newReview);
+
+                        System.out.println("\n Review added successfully!");
+                        System.out.println("Product ID: " + reviewProductId + " | Rating: " + newRating + " stars");
+
+                    } catch (InvalidRatingException e) {
+                        System.out.println("\n ERROR: " + e.getMessage());
+                        System.out.println("Please enter a rating between 1 to 5 stars.");
+                    }
                     break;
-                
+
                 case 6:
                     // Extract Reviews from Specific Customer (New Option)
-                    System.out.println("--- Extract Reviews from Specific Customer ---");
+                    System.out.println("\n* ========== CUSTOMER REVIEWS  ========== *");
                     System.out.print("Enter Customer ID: ");
                     int reviewCid = sc.nextInt();
                     sc.nextLine();
-                    // customers.showReviews(reviewCid); // Placeholder call
-                    System.out.println("Showing all reviews written by Customer " + reviewCid + ".");
+                    customers.extractCustomerReviews(reviewCid); // Placeholder call
                     break;
 
                 case 7:
                     // Show Top 3 Products by Average Rating (New Option)
+                    System.out.println("\n* ========== TOP 3 PRODUCTS BY RATING  ========== *");
                     System.out.println("--- Show Top 3 Products by Average Rating ---");
-                    // products.showTopRated(); // Placeholder call
+                    products.Top3Products(); // Placeholder call
                     System.out.println("Function to sort and display top 3 products goes here.");
                     break;
 
                 case 8:
-                    // View All Orders Between Two Dates
+                    System.out.println("\n* ========== ORDERS BETWEEN DATES  ========== *");
                     System.out.print("Enter start date (YYYY-MM-DD): ");
                     String startDate = sc.nextLine();
                     System.out.print("Enter end date (YYYY-MM-DD): ");
                     String endDate = sc.nextLine();
-                    System.out.println("\nOrders between " + startDate + " and " + endDate + ":");
-                    orders.showOrdersBetween(startDate, endDate);
+
+                    System.out.println("\n--- Orders between " + startDate + " and " + endDate + " ---");
+                    String ordersResult = orders.showOrdersBetween(startDate, endDate);
+
+                    if (ordersResult.isEmpty()) {
+                        System.out.println("No orders found in this date range.");
+                    } else {
+                        System.out.println(ordersResult);
+                    }
                     break;
 
                 case 9:
                     // Common Reviewed Products Between Two Customers (New Option)
-                    System.out.println("--- Common Reviewed Products (Rating > 4) ---");
+                    System.out.println("\n* ========== COMMON HIGHLY-RATED PRODUCTS  ========== *");
                     System.out.print("Enter Customer ID 1: ");
                     int c1 = sc.nextInt();
                     sc.nextLine();
@@ -141,30 +224,31 @@ public class ManagementSystem {
                     int c2 = sc.nextInt();
                     sc.nextLine();
                     // logic to find common products...
-                    System.out.println("Finding common highly-rated products reviewed by Customer " + c1 + " and Customer " + c2 + ".");
+                    products.commonProducts(c1, c2); // Placeholder call
                     break;
 
                 case 10:
                     running = false;
-                    System.out.println("Thank you! see you soon");
+                    System.out.println("\n* ========== THANK YOU  ========== *");
                     break;
 
                 default:
-                    System.out.println("Invalid option. Try again.");
+                    System.out.println("Invalid option. Please try again.");
             }
         }
 
         sc.close();
     }
 
-    // CSV loading methods (UNCHANGED, assuming necessary classes (Product, Customers, Orders, etc.) exist elsewhere)
+    // CSV loading methods (UNCHANGED, assuming necessary classes (Product,
+    // Customers, Orders, etc.) exist elsewhere)
     private static void loadCustomers(String filePath, Customers customers) {
-       try {
+        try {
             File F = new File(filePath);
             Scanner FS = new Scanner(F);
-            int tmpId ;
-            String tmpName , tmpEmail,tmpData;
-             FS.nextLine(); // for skipping the header 
+            int tmpId;
+            String tmpName, tmpEmail, tmpData;
+            FS.nextLine(); // for skipping the header
             while (FS.hasNextLine()) {
                 tmpData = FS.nextLine();
                 int firstComma = tmpData.indexOf(',');
@@ -172,14 +256,14 @@ public class ManagementSystem {
                 String idString = tmpData.substring(0, firstComma);
                 tmpName = tmpData.substring(firstComma + 1, secondComma);
                 tmpEmail = tmpData.substring(secondComma + 1);
-                tmpId= Integer.parseInt(idString);
+                tmpId = Integer.parseInt(idString);
                 customers.registerCustomer(tmpId, tmpName, tmpEmail);
             }
             FS.close();
-       } catch (FileNotFoundException e) {
-        System.out.println(e.getMessage());
-       } 
-        //System.out.println("Loading customers...");
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        // System.out.println("Loading customers...");
     }
 
     private static void loadProducts(String filePath, Products products) {
@@ -210,15 +294,15 @@ public class ManagementSystem {
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
         }
-        //System.out.println("Loading products...");
+        // System.out.println("Loading products...");
     }
 
     private static void loadOrders(String filePath, Orders orders, Customers customers, Products products) {
         try {
             File F = new File(filePath);
             Scanner FS = new Scanner(F);
-            int orderId,customerId;
-            String productIds,orderDate,status,tmpData;
+            int orderId, customerId;
+            String productIds, orderDate, status, tmpData;
             double totalPrice;
             LinkedList<Product> orderProducts = new LinkedList<>();
 
@@ -237,93 +321,91 @@ public class ManagementSystem {
                 int quoteStart = tmpData.indexOf('"');
                 int quoteEnd = tmpData.indexOf('"', quoteStart + 1);
                 String productIdsText = tmpData.substring(quoteStart + 1, quoteEnd);
-                
+
                 totalPrice = Double.parseDouble(tmpData.substring(thirdComma + 1, fourthComma));
                 orderDate = tmpData.substring(fourthComma + 1, fifthComma);
                 status = tmpData.substring(fifthComma + 1);
                 int k = 0;
                 while (k < productIdsText.length()) {
                     int index = productIdsText.indexOf(';', k);
-                    if (index == -1) 
+                    if (index == -1)
                         index = productIdsText.length();
-                        String productIdText = productIdsText.substring(k, index);
-                        int productId = Integer.parseInt(productIdText);
-                        Product found = products.findProductById(productId);
-                        if (found != null) {
-                            Order o = new Order(orderId,customerId,orderProducts,orderDate);
-                            o.addProduct(found);
-                        }
+                    String productIdText = productIdsText.substring(k, index);
+                    int productId = Integer.parseInt(productIdText);
+                    Product found = products.findProductById(productId);
+                    if (found != null) {
+                        Order o = new Order(orderId, customerId, orderProducts, orderDate);
+                        o.addProduct(found);
+                    }
 
-                        k = index + 1;
+                    k = index + 1;
                 }
-                
-                orders.createOrder(orderId,customerId,orderProducts,orderDate);
+
+                orders.createOrder(orderId, customerId, orderProducts, orderDate);
             }
         } catch (FileNotFoundException e) {
-                        System.out.println(e.getMessage());
+            System.out.println(e.getMessage());
 
         }
         // TODO: Implement reading orders from CSV and adding to customer orders
-       // System.out.println("Loading orders...");
+        // System.out.println("Loading orders...");
     }
 
     private static void loadReviews(String filePath, Reviews reviews, Customers customers, Products products) {
         try {
-        File F = new File(filePath);
-        Scanner FS = new Scanner(F);
-        FS.nextLine(); // skip header
+            File F = new File(filePath);
+            Scanner FS = new Scanner(F);
+            FS.nextLine(); // skip header
 
-        while (FS.hasNextLine()) {
-            String tmpData = FS.nextLine();
+            while (FS.hasNextLine()) {
+                String tmpData = FS.nextLine();
 
-            int firstComma = tmpData.indexOf(',');
-            int secondComma = tmpData.indexOf(',', firstComma + 1);
-            int thirdComma = tmpData.indexOf(',', secondComma + 1);
-            int fourthComma = tmpData.indexOf(',', thirdComma + 1);
+                int firstComma = tmpData.indexOf(',');
+                int secondComma = tmpData.indexOf(',', firstComma + 1);
+                int thirdComma = tmpData.indexOf(',', secondComma + 1);
+                int fourthComma = tmpData.indexOf(',', thirdComma + 1);
 
-            int reviewId = Integer.parseInt(tmpData.substring(0, firstComma));
-            int productId = Integer.parseInt(tmpData.substring(firstComma + 1, secondComma));
-            int customerId = Integer.parseInt(tmpData.substring(secondComma + 1, thirdComma));
-            int rating = Integer.parseInt(tmpData.substring(thirdComma + 1, fourthComma));
+                int reviewId = Integer.parseInt(tmpData.substring(0, firstComma));
+                int productId = Integer.parseInt(tmpData.substring(firstComma + 1, secondComma));
+                int customerId = Integer.parseInt(tmpData.substring(secondComma + 1, thirdComma));
+                int rating = Integer.parseInt(tmpData.substring(thirdComma + 1, fourthComma));
 
-            String comment = tmpData.substring(fourthComma + 1);
+                String comment = tmpData.substring(fourthComma + 1);
 
-            Review r = new Review(reviewId, productId, rating, customerId, comment);
-            reviews.addReview(reviewId, productId, rating, customerId, comment);
-            //Attach the review to both customer and product
-            assignReviewToCustomerAndProduct(r, customers, products);
+                Review r = new Review(reviewId, productId, rating, customerId, comment);
+                reviews.addReview(reviewId, productId, rating, customerId, comment);
+                // Attach the review to both customer and product
+                assignReviewToCustomerAndProduct(r, customers, products);
+            }
+
+            FS.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (InvalidRatingException e) {
+            System.out.println("Error: " + e.getMessage());
+
+        }
+        // TODO: Implement reading reviews from CSV and adding to products/customers
+        // System.out.println("Loading reviews...");
+    }
+
+    private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
+        // 1️⃣ Find the matching customer
+        CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
+        if (customer != null) {
+            customer.addReview(r);
+        } else {
+            System.out.println("Customer ID " + r.getCustomerId() + " not found for review " + r.getReviewId());
         }
 
-        FS.close();
-
-    } catch (FileNotFoundException e) {
-        System.out.println("Error: " + e.getMessage());
+        // 2️⃣ Find the matching product
+        Product product = products.findProductById(r.getProductId());
+        if (product != null) {
+            product.addReview(r);
+        } else {
+            System.out.println(" Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
+        }
     }
-    catch (InvalidRatingException e){
-                System.out.println("Error: " + e.getMessage());
-
-    }
-        // TODO: Implement reading reviews from CSV and adding to products/customers
-        //System.out.println("Loading reviews...");
-    }
-    
-    
-    private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
-    // 1️⃣ Find the matching customer
-    CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
-    if (customer != null) {
-        customer.addReview(r);
-    } else {
-        System.out.println("Customer ID " + r.getCustomerId() + " not found for review " + r.getReviewId());
-    }
-
-    // 2️⃣ Find the matching product
-    Product product = products.findProductById(r.getProductId());
-    if (product != null) {
-        product.addReview(r);
-    } else {
-        System.out.println(" Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
-    }
-}
 
 }
