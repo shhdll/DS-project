@@ -16,7 +16,7 @@ public class ManagementSystem {
 
         // File paths
         String customersFile = "dataset/customers.csv";
-        String productsFile = "dataset/products.csv";
+        String productsFile = "dataset/prodcuts.csv";
         String ordersFile = "dataSet/orders.csv";/// erorrrr the system didnt read this !
         String reviewsFile = "dataset/reviews.csv";
 
@@ -25,11 +25,7 @@ public class ManagementSystem {
         loadProducts(productsFile, products);
         loadOrders(ordersFile, orders, customers, products);
         loadReviews(reviewsFile,reviews, customers, products);
-        System.out.println(customers);
-        System.out.println(products);
-        System.out.println(orders);
-        System.out.println(reviews);
-
+       
         // 2 Main menu
         boolean running = true;
         while (running) {
