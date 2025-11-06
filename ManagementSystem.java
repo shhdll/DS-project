@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class ManagementSystem {
@@ -10,18 +12,23 @@ public class ManagementSystem {
         Customers customers = new Customers();
         Products products = new Products();
         Orders orders = new Orders();
+        Reviews reviews = new Reviews();
 
         // File paths
         String customersFile = "dataset/customers.csv";
         String productsFile = "dataset/products.csv";
-        String ordersFile = "dataset/orders.csv";
+        String ordersFile = "dataSet/prodcuts.csv";/// erorrrr the system didnt read this !
         String reviewsFile = "dataset/reviews.csv";
 
         // 1 Load data from CSV files
         loadCustomers(customersFile, customers);
         loadProducts(productsFile, products);
         loadOrders(ordersFile, orders, customers, products);
-        loadReviews(reviewsFile, customers, products);
+        loadReviews(reviewsFile,reviews, customers, products);
+        System.out.println(customers);
+        System.out.println(products);
+        System.out.println(orders);
+        System.out.println(reviews);
 
         // 2 Main menu
         boolean running = true;
@@ -156,22 +163,168 @@ public class ManagementSystem {
 
     // CSV loading methods (UNCHANGED, assuming necessary classes (Product, Customers, Orders, etc.) exist elsewhere)
     private static void loadCustomers(String filePath, Customers customers) {
-        // Placeholder method body
-        System.out.println("Loading customers...");
+       try {
+            File F = new File(filePath);
+            Scanner FS = new Scanner(F);
+            int tmpId ;
+            String tmpName , tmpEmail,tmpData;
+             FS.nextLine(); // for skipping the header 
+            while (FS.hasNextLine()) {
+                tmpData = FS.nextLine();
+                int firstComma = tmpData.indexOf(',');
+                int secondComma = tmpData.indexOf(',', firstComma + 1);
+                String idString = tmpData.substring(0, firstComma);
+                tmpName = tmpData.substring(firstComma + 1, secondComma);
+                tmpEmail = tmpData.substring(secondComma + 1);
+                tmpId= Integer.parseInt(idString);
+                customers.registerCustomer(tmpId, tmpName, tmpEmail);
+            }
+            FS.close();
+       } catch (FileNotFoundException e) {
+        System.out.println(e.getMessage());
+       } 
+        //System.out.println("Loading customers...");
     }
 
     private static void loadProducts(String filePath, Products products) {
-        // Placeholder method body
-        System.out.println("Loading products...");
+        try {
+            File F = new File(filePath);
+            Scanner FS = new Scanner(F);
+            int tmpId, tmpStock;
+            double tmpPrice;
+            String tmpName, tmpData;
+            FS.nextLine(); // skip header
+            while (FS.hasNextLine()) {
+                tmpData = FS.nextLine();
+                int firstComma = tmpData.indexOf(',');
+                int secondComma = tmpData.indexOf(',', firstComma + 1);
+                int thirdComma = tmpData.indexOf(',', secondComma + 1);
+
+                String idString = tmpData.substring(0, firstComma);
+                tmpName = tmpData.substring(firstComma + 1, secondComma);
+                String priceString = tmpData.substring(secondComma + 1, thirdComma);
+                String stockString = tmpData.substring(thirdComma + 1);
+                tmpId = Integer.parseInt(idString);
+                tmpPrice = Double.parseDouble(priceString);
+                tmpStock = Integer.parseInt(stockString);
+                Product p = new Product(tmpId, tmpName, tmpPrice, tmpStock);
+                products.addProduct(p);
+            }
+            FS.close();
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        //System.out.println("Loading products...");
     }
 
     private static void loadOrders(String filePath, Orders orders, Customers customers, Products products) {
+        try {
+            File F = new File(filePath);
+            Scanner FS = new Scanner(F);
+            int orderId,customerId;
+            String productIds,orderDate,status,tmpData;
+            double totalPrice;
+            LinkedList<Product> orderProducts = new LinkedList<>();
+
+            FS.nextLine(); // skip header
+            while (FS.hasNext()) {
+                tmpData = FS.nextLine();
+                int firstComma = tmpData.indexOf(',');
+                int secondComma = tmpData.indexOf(',', firstComma + 1);
+                int thirdComma = tmpData.indexOf(',', secondComma + 1);
+                int fourthComma = tmpData.indexOf(',', thirdComma + 1);
+                int fifthComma = tmpData.indexOf(',', fourthComma + 1);
+                orderId = Integer.parseInt(tmpData.substring(0, firstComma));
+                customerId = Integer.parseInt(tmpData.substring(firstComma + 1, secondComma));
+
+                // Extract the product IDs string between quotes
+                int quoteStart = tmpData.indexOf('"');
+                int quoteEnd = tmpData.indexOf('"', quoteStart + 1);
+                String productIdsText = tmpData.substring(quoteStart + 1, quoteEnd);
+                int k = 0;
+                while (k < productIdsText.length()) {
+                    int index = productIdsText.indexOf(';', k);
+                    if (index == -1) 
+                        index = productIdsText.length();
+                        String productIdText = productIdsText.substring(k, index);
+                        int productId = Integer.parseInt(productIdText);
+                        Product found = products.findProductById(productId);
+                        if (found != null) {
+                            products.addProduct(found);
+                        }
+
+                        k = index + 1;
+                }
+                totalPrice = Double.parseDouble(tmpData.substring(thirdComma + 1, fourthComma));
+                orderDate = tmpData.substring(fourthComma + 1, fifthComma);
+                status = tmpData.substring(fifthComma + 1);
+                orders.createOrder(orderId,customerId,orderProducts,orderDate);
+            }
+        } catch (FileNotFoundException e) {
+                        System.out.println(e.getMessage());
+
+        }
         // TODO: Implement reading orders from CSV and adding to customer orders
-        System.out.println("Loading orders...");
+       // System.out.println("Loading orders...");
     }
 
-    private static void loadReviews(String filePath, Customers customers, Products products) {
-        // TODO: Implement reading reviews from CSV and adding to products/customers
-        System.out.println("Loading reviews...");
+    private static void loadReviews(String filePath, Reviews reviews, Customers customers, Products products) {
+        try {
+        File F = new File(filePath);
+        Scanner FS = new Scanner(F);
+        FS.nextLine(); // skip header
+
+        while (FS.hasNextLine()) {
+            String tmpData = FS.nextLine();
+
+            int firstComma = tmpData.indexOf(',');
+            int secondComma = tmpData.indexOf(',', firstComma + 1);
+            int thirdComma = tmpData.indexOf(',', secondComma + 1);
+            int fourthComma = tmpData.indexOf(',', thirdComma + 1);
+
+            int reviewId = Integer.parseInt(tmpData.substring(0, firstComma));
+            int productId = Integer.parseInt(tmpData.substring(firstComma + 1, secondComma));
+            int customerId = Integer.parseInt(tmpData.substring(secondComma + 1, thirdComma));
+            int rating = Integer.parseInt(tmpData.substring(thirdComma + 1, fourthComma));
+
+            String comment = tmpData.substring(fourthComma + 1);
+
+            Review r = new Review(reviewId, productId, rating, customerId, comment);
+            reviews.addReview(reviewId, productId, rating, customerId, comment);
+            //Attach the review to both customer and product
+            assignReviewToCustomerAndProduct(r, customers, products);
+        }
+
+        FS.close();
+
+    } catch (FileNotFoundException e) {
+        System.out.println("Error: " + e.getMessage());
     }
+    catch (InvalidRatingException e){
+                System.out.println("Error: " + e.getMessage());
+
+    }
+        // TODO: Implement reading reviews from CSV and adding to products/customers
+        //System.out.println("Loading reviews...");
+    }
+    
+    
+    private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
+    // 1️⃣ Find the matching customer
+    CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
+    if (customer != null) {
+        customer.addReview(r);
+    } else {
+        System.out.println("Customer ID " + r.getCustomerId() + " not found for review " + r.getReviewId());
+    }
+
+    // 2️⃣ Find the matching product
+    Product product = products.findProductById(r.getProductId());
+    if (product != null) {
+        product.addReview(r);
+    } else {
+        System.out.println(" Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
+    }
+}
+
 }

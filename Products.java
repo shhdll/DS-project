@@ -245,4 +245,7 @@ System.out.println(" ★ All Products ★ ");
     
     System.out.println("Total: " + count + " Products");
     }
+    public LinkedList<Product> getAllProducts(){
+        return allProducts;
+    }
 }

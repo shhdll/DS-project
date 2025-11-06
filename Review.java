@@ -1,13 +1,13 @@
 public class Review {
- //private int reviewId;
- //private int productId;
+ private int reviewId;
+ private int productId;
  private int rating;
  private int customerId ;
  private String comment;
 
-    public Review(/*int reviewId, int productId,*/ int rating,/*  int customerId,*/ String comment)  throws InvalidRatingException{
-            //this.reviewId = reviewId;
-            //this.productId = productId;
+    public Review(int reviewId, int productId, int rating,  int customerId, String comment)  throws InvalidRatingException{
+            this.reviewId = reviewId;
+            this.productId = productId;
             setRating(rating);
             this.customerId = customerId;
             this.comment = comment;
@@ -22,13 +22,13 @@ public class Review {
         }
         this.rating = rating;
     }
- /*public int getReviewId() {
+ public int getReviewId() {
         return reviewId; 
-        }*/
+        }
 
-/* public int getProductId() {
+ public int getProductId() {
         return productId;
-    } */
+    } 
  public int getRating() {
         return rating;
     }
@@ -37,13 +37,13 @@ public class Review {
     }
  public String getComment() {
         return comment;
-    }/* 
+    }
  public void setReviewId(int reviewId) {
         this.reviewId = reviewId;
     }
     public void setProductId(int productId) {
             this.productId = productId;
-        }*/
+        }
      public void displayReviews() {
         System.out.println("Rating: " + rating + " ★");
         System.out.println("Comment: " + comment);

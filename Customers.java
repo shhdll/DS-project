@@ -16,7 +16,7 @@ public class Customers  {
 
         CustomerRecord newCustomer = new CustomerRecord(customerId, name, email);
         allCustomers.insert(newCustomer);
-        System.out.println("Customer registered successfully");
+        //System.out.println("Customer registered successfully");
     }
 
 
@@ -70,6 +70,21 @@ public class Customers  {
         }
         return null;
     }
-   
+    public String toString() {
+        String result = "";
+
+        if (allCustomers.empty()) {
+            return "No customers found.";
+        }
+
+        allCustomers.findFirst();
+        while (true) {
+            result += allCustomers.retrieve().toString() + "\n";
+            if (allCustomers.last()) break;
+            allCustomers.findNext();
+        }
+
+        return result;
+    }
 
 }
