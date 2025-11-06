@@ -17,7 +17,7 @@ public class ManagementSystem {
         // File paths
         String customersFile = "dataset/customers.csv";
         String productsFile = "dataset/products.csv";
-        String ordersFile = "dataSet/prodcuts.csv";/// erorrrr the system didnt read this !
+        String ordersFile = "dataSet/orders.csv";/// erorrrr the system didnt read this !
         String reviewsFile = "dataset/reviews.csv";
 
         // 1 Load data from CSV files
