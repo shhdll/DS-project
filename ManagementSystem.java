@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -8,7 +9,7 @@ public class ManagementSystem {
 
         Scanner sc = new Scanner(System.in);
 
-        // System data10
+        // System data 
         Customers customers = new Customers();
         Products products = new Products();
         Orders orders = new Orders();
@@ -17,16 +18,17 @@ public class ManagementSystem {
         // File paths
         String customersFile = "dataset/customers.csv";
         String productsFile = "dataset/prodcuts.csv";
-        String ordersFile = "dataSet/orders.csv";/// erorrrr the system didnt read this !
+        String ordersFile = "dataSet/orders.csv";
+        /// erorrrr the system didnt read this !
         String reviewsFile = "dataset/reviews.csv";
 
-        // 1 Load data from CSV files
+        // Load data from CSV files
         loadCustomers(customersFile, customers);
         loadProducts(productsFile, products);
-        loadOrders(ordersFile, orders, customers, products);
+        loadOrders(ordersFile, customers, products);
         loadReviews(reviewsFile, reviews, customers, products);
 
-        // 2 Main menu
+        // Main menu
         boolean running = true;
         while (running) {
             System.out.println("\n **** Welcome to E-Commerce Management **** ");
@@ -56,7 +58,7 @@ public class ManagementSystem {
 
             switch (choice) {
                 case 1:
-                    // Add Product (Updated menu order, logic remains the same)
+                    // Add Product
                     System.out.println("\n* ========== ADD PRODUCT ========== *");
                     System.out.print("Product ID: ");
                     int pid = sc.nextInt();
@@ -74,6 +76,7 @@ public class ManagementSystem {
                     break;
 
                 case 2:
+                    // Add Customer
                     System.out.println("\n* ========== ADD CUSTOMER ========== *");
                     System.out.print("Customer ID: ");
                     int cid = sc.nextInt();
@@ -133,7 +136,7 @@ public class ManagementSystem {
                     break;
 
                 case 4:
-                    // View Customer Orders
+                    // All orders for a specific customer
                     System.out.println("\n* ========== VIEW CUSTOMER ORDERS ========== *");
 
                     System.out.print("Enter Customer ID to view orders: ");
@@ -181,23 +184,24 @@ public class ManagementSystem {
                     break;
 
                 case 6:
-                    // Extract Reviews from Specific Customer (New Option)
+                    // Extract Reviews from Specific Customer
                     System.out.println("\n* ========== CUSTOMER REVIEWS  ========== *");
                     System.out.print("Enter Customer ID: ");
                     int reviewCid = sc.nextInt();
                     sc.nextLine();
-                    customers.extractCustomerReviews(reviewCid); // Placeholder call
+                    customers.extractCustomerReviews(reviewCid);
                     break;
 
                 case 7:
-                    // Show Top 3 Products by Average Rating (New Option)
+                    // Show Top 3 Products by Average Rating
                     System.out.println("\n* ========== TOP 3 PRODUCTS BY RATING  ========== *");
                     System.out.println("--- Show Top 3 Products by Average Rating ---");
-                    products.Top3Products(); // Placeholder call
+                    products.Top3Products();
                     System.out.println("Function to sort and display top 3 products goes here.");
                     break;
 
                 case 8:
+                    // Show orders within a specified date range
                     System.out.println("\n* ========== ORDERS BETWEEN DATES  ========== *");
                     System.out.print("Enter start date (YYYY-MM-DD): ");
                     String startDate = sc.nextLine();
@@ -215,7 +219,7 @@ public class ManagementSystem {
                     break;
 
                 case 9:
-                    // Common Reviewed Products Between Two Customers (New Option)
+                    // Common Reviewed Products Between Two Customers
                     System.out.println("\n* ========== COMMON HIGHLY-RATED PRODUCTS  ========== *");
                     System.out.print("Enter Customer ID 1: ");
                     int c1 = sc.nextInt();
@@ -223,11 +227,12 @@ public class ManagementSystem {
                     System.out.print("Enter Customer ID 2: ");
                     int c2 = sc.nextInt();
                     sc.nextLine();
-                    // logic to find common products...
-                    products.commonProducts(c1, c2); // Placeholder call
+
+                    products.commonProducts(c1, c2);
                     break;
 
                 case 10:
+                    // Exit program
                     running = false;
                     System.out.println("\n* ========== THANK YOU  ========== *");
                     break;
@@ -240,8 +245,8 @@ public class ManagementSystem {
         sc.close();
     }
 
-    // CSV loading methods (UNCHANGED, assuming necessary classes (Product,
-    // Customers, Orders, etc.) exist elsewhere)
+    // CSV loading methods 
+    // Load customers, registers each customer
     private static void loadCustomers(String filePath, Customers customers) {
         try {
             File F = new File(filePath);
@@ -266,6 +271,7 @@ public class ManagementSystem {
         // System.out.println("Loading customers...");
     }
 
+    // Load products, creates Product objects and adds them to Products list
     private static void loadProducts(String filePath, Products products) {
         try {
             File F = new File(filePath);
@@ -294,63 +300,61 @@ public class ManagementSystem {
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
         }
-        // System.out.println("Loading products...");
     }
 
-    private static void loadOrders(String filePath, Orders orders, Customers customers, Products products) {
-        try {
-            File F = new File(filePath);
-            Scanner FS = new Scanner(F);
-            int orderId, customerId;
-            String productIds, orderDate, status, tmpData;
-            double totalPrice;
-            LinkedList<Product> orderProducts = new LinkedList<>();
+    // Load orders, link them to products and customers
+    public static Orders loadOrders(String filename, Customers customers, Products products) {
+        Orders orders = new Orders();
 
-            FS.nextLine(); // skip header
-            while (FS.hasNext()) {
-                tmpData = FS.nextLine();
-                int firstComma = tmpData.indexOf(',');
-                int secondComma = tmpData.indexOf(',', firstComma + 1);
-                int thirdComma = tmpData.indexOf(',', secondComma + 1);
-                int fourthComma = tmpData.indexOf(',', thirdComma + 1);
-                int fifthComma = tmpData.indexOf(',', fourthComma + 1);
-                orderId = Integer.parseInt(tmpData.substring(0, firstComma));
-                customerId = Integer.parseInt(tmpData.substring(firstComma + 1, secondComma));
-
-                // Extract the product IDs string between quotes
-                int quoteStart = tmpData.indexOf('"');
-                int quoteEnd = tmpData.indexOf('"', quoteStart + 1);
-                String productIdsText = tmpData.substring(quoteStart + 1, quoteEnd);
-
-                totalPrice = Double.parseDouble(tmpData.substring(thirdComma + 1, fourthComma));
-                orderDate = tmpData.substring(fourthComma + 1, fifthComma);
-                status = tmpData.substring(fifthComma + 1);
-                int k = 0;
-                while (k < productIdsText.length()) {
-                    int index = productIdsText.indexOf(';', k);
-                    if (index == -1)
-                        index = productIdsText.length();
-                    String productIdText = productIdsText.substring(k, index);
-                    int productId = Integer.parseInt(productIdText);
-                    Product found = products.findProductById(productId);
-                    if (found != null) {
-                        Order o = new Order(orderId, customerId, orderProducts, orderDate);
-                        o.addProduct(found);
-                    }
-
-                    k = index + 1;
+        try (Scanner sc = new Scanner(new File(filename))) {
+            sc.nextLine(); // skip header
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                if (line.trim().isEmpty()) {
+                    continue;
                 }
 
-                orders.createOrder(orderId, customerId, orderProducts, orderDate);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+                String[] parts = line.split(",");
 
+                int orderId = Integer.parseInt(parts[0].trim());
+                int customerId = Integer.parseInt(parts[1].trim());
+                String productIdsStr = parts[2].replace("\"", "").trim(); // remove quotes
+                double totalPrice = Double.parseDouble(parts[3].trim());
+                String orderDate = parts[4].trim();
+                String status = parts[5].trim();
+
+                // Create list of products
+                LinkedList<Product> orderProducts = new LinkedList<>();
+                String[] productIds = productIdsStr.split(";");
+                for (String pidStr : productIds) {
+                    int productId = Integer.parseInt(pidStr.trim());
+                    Product p = products.findProductById(productId);
+                    if (p != null) {
+                        orderProducts.insert(p);
+                    }
+                }
+
+                // Create order object
+                Order newOrder = new Order(orderId, customerId, orderProducts, orderDate);
+                newOrder.setStatus(status); // assuming you have a setStatus method
+                orders.getOrderList().insert(newOrder);
+
+                // Link order to customer
+                CustomerRecord customer = customers.findCustomerById(customerId);
+                if (customer != null) {
+                    customer.getOrders().insert(newOrder);
+                } else {
+                    System.out.println("Customer ID " + customerId + " not found for order " + orderId);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading orders: " + e.getMessage());
         }
-        // TODO: Implement reading orders from CSV and adding to customer orders
-        // System.out.println("Loading orders...");
+
+        return orders;
     }
 
+    // Load reviews, and assign to both products and customers
     private static void loadReviews(String filePath, Reviews reviews, Customers customers, Products products) {
         try {
             File F = new File(filePath);
@@ -386,12 +390,11 @@ public class ManagementSystem {
             System.out.println("Error: " + e.getMessage());
 
         }
-        // TODO: Implement reading reviews from CSV and adding to products/customers
-        // System.out.println("Loading reviews...");
     }
 
+    // Link a review to its corresponding customer and product
     private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
-        // 1️⃣ Find the matching customer
+        // Find the matching customer
         CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
         if (customer != null) {
             customer.addReview(r);
@@ -399,7 +402,7 @@ public class ManagementSystem {
             System.out.println("Customer ID " + r.getCustomerId() + " not found for review " + r.getReviewId());
         }
 
-        // 2️⃣ Find the matching product
+        // Find the matching product
         Product product = products.findProductById(r.getProductId());
         if (product != null) {
             product.addReview(r);

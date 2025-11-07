@@ -1,5 +1,5 @@
 
-public class Orders extends LinkedList<Order> {
+public class Orders {
 
     private LinkedList<Order> orderList;
 
@@ -7,9 +7,9 @@ public class Orders extends LinkedList<Order> {
         orderList = new LinkedList<Order>();
 
     }
+
     // Operations
     // 1 create order
-
     public void createOrder(int orderId, int customerID, LinkedList<Product> productList, String orderDate) {
         Order o = new Order(orderId, customerID, productList, orderDate);
         orderList.insert(o);
@@ -90,11 +90,16 @@ public class Orders extends LinkedList<Order> {
         int count = 1;
         while (tmp != null) {
             Order order = tmp.data;
-            System.out.println(count + ". Order ID: " + order.getOrderId() + ", Customer: " + order.getOcustomer() +
-                    ", Date: " + order.getOrderDate() + ", Status: " + order.getStatus());
+            System.out.println(count + ". Order ID: " + order.getOrderId() + ", Customer: " + order.getOcustomer()
+                    + ", Date: " + order.getOrderDate() + ", Status: " + order.getStatus());
             tmp = tmp.next;
             count++;
         }
         System.out.println("Total: " + (count - 1) + " orders");
     }
+
+    public LinkedList<Order> getOrderList() {
+        return orderList;
+    }
+
 }

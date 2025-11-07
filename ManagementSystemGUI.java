@@ -1,200 +1,915 @@
+
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Scanner;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class ManagementSystemGUI {
 
     private static final Color DARK_BLUE = new Color(0x00, 0x00, 0x4d);
+    private static final String DATASET_PATH = "dataset/";
 
-    // --- Helper Data Structures (now static for easy access) ---
-    private record Product(int id, String name, double price, int stock) {
-        public String displayProductDetails() {
-            return "--- Product Details ---\n" +
-                   "ID: " + id + "\n" +
-                   "Name: " + name + "\n" +
-                   "Price: $" + String.format("%.2f", price) + "\n" +
-                   "Stock: " + stock;
+    // 1. Custom Data Structure 
+    public interface List<T> {
+        public boolean empty();
+        public boolean last();
+        public boolean full();
+        public void findFirst();
+        public void findNext();
+        public T retrieve();
+        public void update(T val);
+        public void insert(T val);
+        public void remove();
+        public boolean find(T key);
+        public int size();
+    }
+
+    public static class Node<T> {
+        public T data;
+        public Node<T> next;
+        public Node(T data) {
+            this.data = data;
+            this.next = null;
         }
     }
 
-    private record Review(int reviewId, int productId, int customerId, int rating, String comment) {}
+    public static class LinkedList<T> implements List<T> {
 
-    // --- Placeholder Classes updated for new functionality ---
+        private Node<T> head;
+        private Node<T> current;
+        public LinkedList() {
+            head = current = null;
+        }
+        @Override
+        public boolean empty() {
+            return head == null;
+        }
+        @Override
+        public boolean last() {
+            return current != null && current.next == null;
+        }
+        @Override
+        public boolean full() {
+            return false;
+        }
+        @Override
+        public void findFirst() {
+            current = head;
+        }
+        @Override
+        public void findNext() {
+            current = current.next;
+        }
+        @Override
+        public T retrieve() {
+            return current != null ? current.data : null;
+        }
+        @Override
+        public void update(T val) {
+            if (current != null) {
+                current.data = val;
+            }
+        }
+
+        @Override
+        public void insert(T val) {
+            Node<T> tmp;
+            if (empty()) {
+                current = head = new Node<>(val);
+            } else {
+                tmp = current.next;
+                current.next = new Node<>(val);
+                current = current.next;
+                current.next = tmp;
+            }
+        }
+        @Override
+        public void remove() {
+            if (current == null) {
+                return;
+            }
+            if (current == head) {
+                head = head.next;
+            } else {
+                Node<T> tmp = head;
+                while (tmp.next != current) {
+                    tmp = tmp.next;
+                }
+                tmp.next = current.next;
+            }
+
+            if (current.next == null) {
+                current = head;
+            } else {
+                current = current.next;
+            }
+        }
+        @Override
+        public boolean find(T key) {
+            Node<T> tmp = head;
+            while (tmp != null) {
+                if (tmp.data.equals(key)) {
+                    current = tmp;
+                    return true;
+                }
+                tmp = tmp.next;
+            }
+            return false;
+        }
+        @Override
+        public int size() {
+            int count = 0;
+            Node<T> tmp = head;
+            while (tmp != null) {
+                count++;
+                tmp = tmp.next;
+            }
+            return count;
+        }
+
+        public Node<T> getHead() {
+            return head;
+        }
+
+        public Node<T> getCurrent() {
+            return current;
+        }
+
+        public Node<T> getNext() {
+            return current != null ? current.next : null;
+        }
+    }
+    // Custom Exceptions
+    public static class InvalidRatingException extends Exception {
+
+        public InvalidRatingException(String message) {
+            super(message);
+        }
+    }
+    public static class InvalidStatusException extends Exception {
+
+        public InvalidStatusException(String message) {
+            super(message);
+        }
+    }
+
+    // Minimal Product Class
+    public static class Product {
+
+        private final int productId;
+        private String name;
+        private double price;
+        private int stock;
+        private LinkedList<Review> reviews = new LinkedList<>();
+
+        public Product(int id, String name, double price, int stock) {
+            this.productId = id;
+            this.name = name;
+            this.price = price;
+            this.stock = stock;
+        }
+        public int getProductId() {
+            return productId;
+        }
+        public String getName() {
+            return name;
+        }
+        public double getPrice() {
+            return price;
+        }
+        public int getStock() {
+            return stock;
+        }
+        public LinkedList<Review> getReviews() {
+            return reviews;
+        }
+        public void addReview(Review r) {
+            reviews.insert(r);
+        }
+        public void updateProduct(String name, double price, int stock) {
+            this.name = name;
+            this.price = price;
+            this.stock = stock;
+        }
+        public void displayProductDetails() {
+            System.out.println("ID: " + productId + ", Name: " + name + ", Price: " + price + ", Stock: " + stock);
+        }
+    }
+
+    // Minimal Review Class
+    public static class Review {
+
+        private final int reviewId;
+        private final int productId;
+        private final int customerId;
+        private int rating;
+        private String comment;
+
+        public Review(int reviewId, int productId, int rating, int customerId, String comment) throws InvalidRatingException {
+            if (rating < 1 || rating > 5) {
+                throw new InvalidRatingException("Rating must be between 1 and 5.");
+            }
+            this.reviewId = reviewId;
+            this.productId = productId;
+            this.rating = rating;
+            this.customerId = customerId;
+            this.comment = comment;
+        }
+
+        public int getReviewId() {
+            return reviewId;
+        }
+
+        public int getProductId() {
+            return productId;
+        }
+
+        public int getCustomerId() {
+            return customerId;
+        }
+
+        public int getRating() {
+            return rating;
+        }
+
+        public String getComment() {
+            return comment;
+        }
+
+        public void edit(int newRating, String newComment) throws InvalidRatingException {
+            if (newRating < 1 || newRating > 5) {
+                throw new InvalidRatingException("Rating must be between 1 and 5.");
+            }
+            this.rating = newRating;
+            this.comment = newComment;
+        }
+    }
+
+    // Minimal Order Class
+    public static class Order {
+
+        private final int orderId;
+        private final int customerId;
+        private final LinkedList<Product> productList;
+        private final String orderDate;
+        private String status = "Pending";
+
+        public Order(int orderId, int customerId, LinkedList<Product> productList, String orderDate) {
+            this.orderId = orderId;
+            this.customerId = customerId;
+            this.productList = productList;
+            this.orderDate = orderDate;
+        }
+
+        public int getOrderId() {
+            return orderId;
+        }
+
+        public int getOcustomer() {
+            return customerId;
+        }
+
+        public String getOrderDate() {
+            return orderDate;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public LinkedList<Product> getProductList() {
+            return productList;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public double getTotalPrice() {
+            if (productList.empty()) {
+                return 0.0;
+            }
+            double total = 0;
+            productList.findFirst();
+            while (true) {
+                Product p = productList.retrieve();
+                if (p != null) {
+                    total += p.getPrice();
+                }
+                if (productList.last()) {
+                    break;
+                }
+                productList.findNext();
+            }
+            return total;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Order #%d | Date: %s | Total: $%.2f | Status: %s | Customer ID: %d",
+                    orderId, orderDate, getTotalPrice(), status, customerId);
+        }
+    }
+
+    // Minimal CustomerRecord Class
+    public static class CustomerRecord {
+
+        private final int customerId;
+        private final String name;
+        private final String email;
+        private final LinkedList<Order> orders = new LinkedList<>();
+        private final LinkedList<Review> reviews = new LinkedList<>();
+
+        public CustomerRecord(int id, String name, String email) {
+            this.customerId = id;
+            this.name = name;
+            this.email = email;
+        }
+
+        public int getCustomerId() {
+            return customerId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public LinkedList<Order> getOrders() {
+            return orders;
+        }
+
+        public LinkedList<Review> getReviews() {
+            return reviews;
+        }
+
+        public void addReview(Review r) {
+            reviews.insert(r);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("ID: %d | Name: %s | Email: %s", customerId, name, email);
+        }
+    }
+
+    // 2. System Management Classes
     private class Customers {
-        public void registerCustomer(int id, String name, String email) {
-            System.out.println("Customer registered: " + name);
+
+        private LinkedList<CustomerRecord> allCustomers = new LinkedList<>();
+
+        public void registerCustomer(int customerId, String name, String email) {
+            if (findCustomerById(customerId) != null) {
+                JOptionPane.showMessageDialog(frame, "Customer ID already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            CustomerRecord newCustomer = new CustomerRecord(customerId, name, email);
+            allCustomers.insert(newCustomer);
         }
+
+        public void placeOrder(int customerId, int orderId, LinkedList<Product> productList, String orderDate) {
+            CustomerRecord customer = findCustomerById(customerId);
+            if (customer == null) {
+                JOptionPane.showMessageDialog(frame, "Customer ID not found :(", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Order newOrder = new Order(orderId, customerId, productList, orderDate);
+            customer.getOrders().insert(newOrder);
+            orders.getOrderList().insert(newOrder);
+        }
+
         public String viewOrderHistory(int customerId) {
-            // NOTE: This now calls a file reading utility to be more realistic, 
-            // but the file data in orders.csv is complex (productIds are a list), 
-            // so this remains a placeholder for simplicity in this step.
-            return "--- Viewing Order History for Customer ID: " + customerId + " ---\n"
-                 + "Order #101: 2024-05-15, Total: $50.00 (Placeholder)\n"
-                 + "Order #105: 2024-06-01, Total: $125.50 (Placeholder)\n"
-                 + "Order #112: 2024-07-20, Total: $15.99 (Placeholder)";
+            CustomerRecord customer = findCustomerById(customerId);
+            if (customer == null) {
+                return "Customer ID " + customerId + " not found :(";
+            }
+
+            LinkedList<Order> customerOrders = customer.getOrders();
+            if (customerOrders.empty()) {
+                return "Customer " + customer.getName() + " has no orders.";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Order History for Customer ID ").append(customerId).append(" ---\n");
+
+            customerOrders.findFirst();
+            while (true) {
+                Order o = customerOrders.retrieve();
+                if (o != null) {
+                    sb.append("  Order ID: ").append(o.getOrderId())
+                            .append(", Status: ").append(o.getStatus())
+                            .append(", Date: ").append(o.getOrderDate())
+                            .append(", Total: $").append(String.format("%.2f", o.getTotalPrice())).append("\n");
+                }
+
+                if (customerOrders.last()) {
+                    break;
+                }
+                customerOrders.findNext();
+            }
+            return sb.toString();
         }
-        public String getCustomerReviews(int customerId) {
-            // Implementation for Option 6 (extract reviews) should be similar to getTop3Products
-            // but for now, we leave the original placeholder to focus on Option 7
-            return "--- Reviews by Customer " + customerId + " ---\n"
-                 + "Product A: Rating 5/5, Comment: Great service! (Placeholder)\n"
-                 + "Product B: Rating 4/5, Comment: Could be better. (Placeholder)\n"
-                 + "Product C: Rating 5/5, Comment: Best buy this year. (Placeholder)";
+
+        public CustomerRecord findCustomerById(int customerId) {
+            if (allCustomers.empty()) {
+                return null;
+            }
+
+            Node<CustomerRecord> temp = allCustomers.getHead();
+            while (temp != null) {
+                if (temp.data.getCustomerId() == customerId) {
+                    return temp.data;
+                }
+                temp = temp.next;
+            }
+            return null;
         }
-        public String getCommonReviewedProducts(int cId1, int cId2) {
-            return "--- Common Highly-Rated Products (RATING > 4) ---\n"
-                 + "Customers " + cId1 + " and " + cId2 + " both loved:\n"
-                 + "ID 10: Premium Coffee Maker (Placeholder)\n"
-                 + "ID 45: Wireless Headset Pro (Placeholder)";
+
+        public String extractCustomerReviews(int customerId) {
+            CustomerRecord customer = findCustomerById(customerId);
+            if (customer == null) {
+                return "Customer ID " + customerId + " not found.";
+            }
+
+            LinkedList<Review> customerReviews = customer.getReviews();
+            if (customerReviews.empty()) {
+                return "Customer " + customer.getName() + " has no reviews.";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Reviews by Customer ").append(customer.getName()).append(" (ID: ").append(customerId).append(") ---\n");
+
+            customerReviews.findFirst();
+            while (true) {
+                Review r = customerReviews.retrieve();
+                if (r != null) {
+                    Product p = products.findProductById(r.getProductId());
+                    String pName = p != null ? p.getName() : "Product " + r.getProductId();
+
+                    sb.append("- ").append(pName).append(":\n")
+                            .append("  Rating: ").append(r.getRating()).append(" / 5\n")
+                            .append("  Comment: \"").append(r.getComment()).append("\"\n");
+                }
+
+                if (customerReviews.last()) {
+                    break;
+                }
+                customerReviews.findNext();
+            }
+            return sb.toString();
         }
     }
 
     private class Products {
-        private final Map<Integer, Product> productMap;
 
-        public Products() {
-            // Load products upon initialization
-            this.productMap = loadProductsFromFile("prodcuts.csv");
-        }
-        
-        // UTILITY: Loads products from the file
-        private Map<Integer, Product> loadProductsFromFile(String filename) {
-            Map<Integer, Product> map = new HashMap<>();
-            try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-                String line;
-                br.readLine(); // Skip header
-                while ((line = br.readLine()) != null) {
-                    String[] parts = line.split(",");
-                    if (parts.length >= 4) {
-                        try {
-                            int id = Integer.parseInt(parts[0].trim());
-                            String name = parts[1].trim();
-                            double price = Double.parseDouble(parts[2].trim());
-                            int stock = Integer.parseInt(parts[3].trim());
-                            map.put(id, new Product(id, name, price, stock));
-                        } catch (NumberFormatException e) {
-                            System.err.println("Skipping malformed product line: " + line);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.err.println("Could not load products file: " + e.getMessage());
-            }
-            return map;
-        }
-        
-        // UTILITY: Loads reviews from the file
-        private List<Review> loadReviewsFromFile(String filename) {
-            List<Review> reviews = new java.util.ArrayList<>();
-            try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-                String line;
-                br.readLine(); // Skip header
-                while ((line = br.readLine()) != null) {
-                    String[] parts = line.split(",");
-                    if (parts.length >= 5) {
-                        try {
-                            int reviewId = Integer.parseInt(parts[0].trim());
-                            int productId = Integer.parseInt(parts[1].trim());
-                            int customerId = Integer.parseInt(parts[2].trim());
-                            int rating = Integer.parseInt(parts[3].trim());
-                            String comment = parts[4].replaceAll("^\"|\"$", ""); // Remove quotes from comment
-                            reviews.add(new Review(reviewId, productId, customerId, rating, comment));
-                        } catch (NumberFormatException e) {
-                            System.err.println("Skipping malformed review line: " + line);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.err.println("Could not load reviews file: " + e.getMessage());
-            }
-            return reviews;
-        }
+        private LinkedList<Product> allProducts = new LinkedList<>();
 
         public void addProduct(Product p) {
-            productMap.put(p.id(), p);
-            System.out.println("Product added (in-memory): " + p.name());
+            if (findProductById(p.getProductId()) == null) {
+                allProducts.insert(p);
+                JOptionPane.showMessageDialog(frame, "Product added successfully: " + p.getName());
+            } else {
+                JOptionPane.showMessageDialog(frame, "Product ID already exists.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-        
+
         public Product findProductById(int productId) {
-             return productMap.getOrDefault(productId, new Product(0, "Not Found", 0.0, 0)); 
+            if (allProducts.empty()) {
+                return null;
+            }
+
+            allProducts.findFirst();
+            while (true) {
+                Product current1 = allProducts.retrieve();
+                if (current1 != null && current1.getProductId() == productId) {
+                    return current1;
+                }
+
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
+            return null;
         }
 
-        // Option 7: Dynamically calculate Top 3 Products by Avg Rating
-        public String getTop3Products() {
-            List<Review> reviews = loadReviewsFromFile("reviews.csv");
-            
-            // 1. Group reviews by productId and calculate the average rating
-            Map<Integer, Double> avgRatings = reviews.stream()
-                .collect(Collectors.groupingBy(
-                    Review::productId,
-                    Collectors.averagingInt(Review::rating)
-                ));
-            
-            // 2. Map the average ratings to a list of (Product, Average Rating) pairs
-            List<Map.Entry<Integer, Double>> topRatedList = avgRatings.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .limit(3)
-                .collect(Collectors.toList());
+        public void addReview(int productId, Review r) {
+            Product p = findProductById(productId);
+            if (p != null) {
+                p.addReview(r);
+                CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
+                if (customer != null) {
+                    customer.addReview(r);
+                }
+            } else {
+                JOptionPane.showMessageDialog(frame, "Product with ID " + productId + " not found. Review not added.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
 
-            // 3. Format the output string
-            StringBuilder sb = new StringBuilder();
-            sb.append("--- Top 3 Rated Products ---\n");
-            
-            int rank = 1;
-            for (Map.Entry<Integer, Double> entry : topRatedList) {
-                Product p = productMap.get(entry.getKey());
+        private double calculateAverageRating(Product p) {
+            LinkedList<Review> allreviews = p.getReviews();
+            if (allreviews.empty()) {
+                return 0;
+            }
+
+            double sum = 0;
+            int count = 0;
+            allreviews.findFirst();
+            while (true) {
+                Review currentReview = allreviews.retrieve();
+                if (currentReview != null) {
+                    sum += currentReview.getRating();
+                    count++;
+                }
+                if (allreviews.last()) {
+                    break;
+                }
+                allreviews.findNext();
+            }
+            return sum / count;
+        }
+
+        private boolean hasCustomerReviewed(Product p, int customerId) {
+            LinkedList<Review> reviews = p.getReviews();
+            if (reviews.empty()) {
+                return false;
+            }
+
+            reviews.findFirst();
+            while (true) {
+                Review r = reviews.retrieve();
+                if (r != null && r.getCustomerId() == customerId) {
+                    return true;
+                }
+                if (reviews.last()) {
+                    break;
+                }
+                reviews.findNext();
+            }
+            return false;
+        }
+
+        public String getTop3Products() {
+            if (allProducts.empty()) {
+                return "No products available.";
+            }
+
+            // FIX 1: DECLARE AS CONCRETE ArrayList<Product>
+            ArrayList<Product> sortableProducts = new ArrayList<>();
+
+            // 1. EXTRACT: Use custom LinkedList traversal
+            allProducts.findFirst();
+            while (true) {
+                Product p = allProducts.retrieve();
                 if (p != null) {
-                    sb.append(rank).append(". ")
-                      .append(p.name())
-                      .append(String.format(" (%.1f Average Rating)\n", entry.getValue()));
-                    rank++;
+                    sortableProducts.add(p);
+                }
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
+
+            if (sortableProducts.isEmpty()) {
+                return "No products available."; 
+            }
+            // 2. SORT
+            sortableProducts.sort(Comparator.comparingDouble(this::calculateAverageRating).reversed());
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- ★Top 3 Products by Rating★ ---\n");
+
+            int count = 0;
+            for (Product p : sortableProducts) {
+                double avgRating = calculateAverageRating(p);
+
+                if (avgRating > 0) {
+                    sb.append(count + 1).append(". ").append(p.getName()).append("\n")
+                            .append("   Rating: ").append(String.format("%.1f", avgRating)).append(" out of 5\n")
+                            .append("   Price: ").append(p.getPrice()).append(" SAR\n");
+                    count++;
+                }
+                if (count >= 3) {
+                    break;
                 }
             }
-            
+
+            if (count == 0) {
+                return "No products with ratings available.";
+            }
+            return sb.toString();
+        }
+
+        // Option 9: Common Reviewed Products Between Two Customers 
+        public String commonProducts(int cust1, int cust2) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Common Highly-Rated Products (Rating > 4.0) ---\n");
+            sb.append("Customers ").append(cust1).append(" & ").append(cust2).append(" both loved:\n");
+
+            int count = 0;
+
+            if (!allProducts.empty()) {
+                allProducts.findFirst();
+                while (true) {
+                    Product p = allProducts.retrieve();
+                    double rating = calculateAverageRating(p);
+
+                    if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p, cust2)) {
+                        count++;
+                        sb.append(count).append(". ").append(p.getName())
+                                .append(" - ").append(String.format("%.1f", rating)).append(" out of 5\n");
+                    }
+
+                    if (allProducts.last()) {
+                        break;
+                    }
+                    allProducts.findNext();
+                }
+            }
+
+            if (count == 0) {
+                sb.append("No common products with rating above 4.0 found between these customers.");
+            }
+            return sb.toString();
+        }
+
+        public String getAllProductsForOrder() {
+            if (allProducts.empty()) {
+                return "No products available.";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            allProducts.findFirst();
+            while (true) {
+                Product p = allProducts.retrieve();
+                if (p != null) {
+                    sb.append(String.format("ID %d: %s | Price: $%.2f | Stock: %d\n",
+                            p.getProductId(), p.getName(), p.getPrice(), p.getStock()));
+                }
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
             return sb.toString();
         }
     }
 
     private class Orders {
+
+        private LinkedList<Order> orderList = new LinkedList<>();
+
+        public Orders() { }
+
         public String showOrdersBetween(String start, String end) {
-            // NOTE: This remains a placeholder for simplicity due to the complex 
-            // nature of productIds in orders.csv
-            return "--- Orders Between " + start + " and " + end + " ---\n"
-                 + "Order 201 | 2024-03-01 | Customer 1 (Placeholder)\n"
-                 + "Order 202 | 2024-03-10 | Customer 2 (Placeholder)\n"
-                 + "Order 203 | 2024-04-05 | Customer 1 (Placeholder)\n";
+            Node<Order> current = orderList.getHead();
+            StringBuilder sb = new StringBuilder();
+
+            boolean found = false;
+
+            while (current != null) {
+                Order o = current.data;
+                String date = o.getOrderDate();
+
+                if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
+                    sb.append(o.toString()).append("\n");
+                    found = true;
+                }
+                current = current.next;
+            }
+
+            if (!found) {
+                return "No orders found in this date range.";
+            }
+            return sb.toString();
+        }
+
+        public LinkedList<Order> getOrderList() {
+            return orderList;
         }
     }
-    // -----------------------------------------------------------
 
-    private Customers customers;
-    private Products products;
-    private Orders orders;
+    private class Reviews {
+
+        private LinkedList<Review> reviewList = new LinkedList<>();
+
+        public Reviews() {}
+
+        public void addReview(Review r) {
+            reviewList.insert(r);
+        }
+    }
+
+    // 3. GUI and Main Class Fields/Methods
+    private final Customers customers;
+    private final Products products;
+    private final Orders orders;
+    private final Reviews reviews;
 
     private JFrame frame;
     private JPanel cards;
     private CardLayout cardLayout;
 
+    private static ManagementSystemGUI instance;
+
+    private static ManagementSystemGUI getInstance() {
+        return instance;
+    }
+
     public ManagementSystemGUI() {
+        instance = this;
         customers = new Customers();
         products = new Products();
         orders = new Orders();
+        reviews = new Reviews();
+
+        loadData();
+
         createAndShowGUI();
     }
 
+    private void loadData() {
+        loadCustomers(DATASET_PATH + "customers.csv", customers);
+        loadProducts(DATASET_PATH + "prodcuts.csv", products);
+        loadOrders(DATASET_PATH + "orders.csv", customers, products);
+        loadReviews(DATASET_PATH + "reviews.csv", reviews, customers, products);
+    }
+
+    private static void loadCustomers(String filePath, Customers customers) {
+        try (Scanner FS = new Scanner(new File(filePath))) {
+            FS.nextLine(); // skip header
+            while (FS.hasNextLine()) {
+                String tmpData = FS.nextLine();
+                String[] parts = tmpData.split(",");
+                if (parts.length >= 3) {
+                    try {
+                        int tmpId = Integer.parseInt(parts[0].trim());
+                        String tmpName = parts[1].trim();
+                        String tmpEmail = parts[2].trim();
+                        CustomerRecord newCustomer = new CustomerRecord(tmpId, tmpName, tmpEmail);
+                        customers.allCustomers.insert(newCustomer);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Skipping malformed customer line: " + tmpData);
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: Customers file not found at " + filePath);
+        }
+    }
+
+    private static void loadProducts(String filePath, Products products) {
+        try (Scanner FS = new Scanner(new File(filePath))) {
+            FS.nextLine(); // skip header
+            while (FS.hasNextLine()) {
+                String tmpData = FS.nextLine();
+                String[] parts = tmpData.split(",");
+                if (parts.length >= 4) {
+                    try {
+                        int tmpId = Integer.parseInt(parts[0].trim());
+                        String tmpName = parts[1].trim();
+                        double tmpPrice = Double.parseDouble(parts[2].trim());
+                        int tmpStock = Integer.parseInt(parts[3].trim());
+                        Product p = new Product(tmpId, tmpName, tmpPrice, tmpStock);
+                        products.allProducts.insert(p);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Skipping malformed product line: " + tmpData);
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: Products file not found at " + filePath);
+        }
+    }
+
+    public static void loadOrders(String filename, Customers customers, Products products) {
+        Orders globalOrders = ManagementSystemGUI.getInstance().orders;
+
+        try (Scanner sc = new Scanner(new File(filename))) {
+            sc.nextLine(); // skip header
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                int firstComma = line.indexOf(',');
+                int secondComma = line.indexOf(',', firstComma + 1);
+                int thirdComma = line.indexOf(',', secondComma + 1);
+
+                if (firstComma == -1 || secondComma == -1 || thirdComma == -1) {
+                    continue;
+                }
+
+                try {
+                    String part1 = line.substring(0, firstComma).trim();
+                    String part2 = line.substring(firstComma + 1, secondComma).trim();
+                    String productIdsStr = line.substring(secondComma + 1, thirdComma).replace("\"", "").trim();
+                    String remaining = line.substring(thirdComma + 1).trim();
+
+                    String[] remainingParts = remaining.split(",", 3);
+
+                    if (remainingParts.length < 3) {
+                        continue;
+                    }
+
+                    int orderId = Integer.parseInt(part1);
+                    int customerId = Integer.parseInt(part2);
+                    String orderDate = remainingParts[1].trim();
+                    String status = remainingParts[2].trim();
+
+                    LinkedList<Product> orderProducts = new LinkedList<>();
+                    String[] productIds = productIdsStr.split(";");
+
+                    for (String pidStr : productIds) {
+                        int productId = Integer.parseInt(pidStr.trim());
+                        Product p = products.findProductById(productId);
+                        if (p != null) {
+                            orderProducts.insert(p);
+                        } else {
+                            System.err.println("Product ID " + productId + " not found for order " + orderId);
+                        }
+                    }
+
+                    if (orderProducts.empty()) {
+                        continue;
+                    }
+
+                    Order newOrder = new Order(orderId, customerId, orderProducts, orderDate);
+                    newOrder.setStatus(status);
+                    globalOrders.getOrderList().insert(newOrder);
+
+                    CustomerRecord customer = customers.findCustomerById(customerId);
+                    if (customer != null) {
+                        customer.getOrders().insert(newOrder);
+                    } else {
+                        System.err.println("Customer ID " + customerId + " not found for order " + orderId);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing order line: " + line + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading orders: " + e.getMessage());
+        }
+    }
+
+    private static void loadReviews(String filePath, Reviews reviews, Customers customers, Products products) {
+        try (Scanner FS = new Scanner(new File(filePath))) {
+            FS.nextLine(); // skip header
+
+            while (FS.hasNextLine()) {
+                String tmpData = FS.nextLine();
+                String[] parts = tmpData.split(",", 5);
+
+                if (parts.length >= 5) {
+                    try {
+                        int reviewId = Integer.parseInt(parts[0].trim());
+                        int productId = Integer.parseInt(parts[1].trim());
+                        int customerId = Integer.parseInt(parts[2].trim());
+                        int rating = Integer.parseInt(parts[3].trim());
+                        String comment = parts[4].replaceAll("^\"|\"$", "");
+
+                        Review r = new Review(reviewId, productId, rating, customerId, comment);
+                        reviews.addReview(r);
+                        assignReviewToCustomerAndProduct(r, customers, products);
+                    } catch (NumberFormatException | InvalidRatingException e) {
+                        System.err.println("Skipping malformed review line: " + tmpData + " - " + e.getMessage());
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: Reviews file not found at " + filePath);
+        }
+    }
+
+    private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
+        CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
+        if (customer != null) {
+            customer.addReview(r);
+        } else {
+            System.err.println("Customer ID " + r.getCustomerId() + " not found for review " + r.getReviewId());
+        }
+
+        Product product = products.findProductById(r.getProductId());
+        if (product != null) {
+            product.addReview(r);
+        } else {
+            System.err.println("Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
+        }
+    }
+
+    // 4. GUI Component Methods
     private void createAndShowGUI() {
         frame = new JFrame("E-Commerce Management System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false);
+        frame.setResizable(true); 
 
         JPanel container = new JPanel();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
@@ -202,8 +917,7 @@ public class ManagementSystemGUI {
 
         // Header
         try {
-            // Note: This file path will fail unless the image exists at that exact location
-            Image img = ImageIO.read(new File("C:\\Users\\shaha\\DS-project\\images\\readme_header.png"));
+            Image img = ImageIO.read(new File("images/readme_header.png"));
             JLabel headerLabel = new JLabel(new ImageIcon(img));
             headerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             container.add(headerLabel);
@@ -218,7 +932,7 @@ public class ManagementSystemGUI {
             container.add(fallback);
         }
 
-        // --- Buttons Setup (5x2 grid for 10 options) ---
+        // Buttons Setup
         JPanel buttonPanel = new JPanel(new GridLayout(5, 2, 15, 15));
         buttonPanel.setBackground(DARK_BLUE);
         buttonPanel.setMaximumSize(new Dimension(700, 225));
@@ -244,28 +958,26 @@ public class ManagementSystemGUI {
         buttonPanel.add(topProductsBtn);
         buttonPanel.add(ordersBetweenDatesBtn);
         buttonPanel.add(commonProductsBtn);
-        buttonPanel.add(exitBtn); 
-        
+        buttonPanel.add(exitBtn);
+
         container.add(Box.createRigidArea(new Dimension(0, 15)));
         container.add(buttonPanel);
-        
-        // Card layout
+
         cardLayout = new CardLayout();
         cards = new JPanel(cardLayout);
-        cards.setPreferredSize(new Dimension(800, 400));
+        cards.setPreferredSize(new Dimension(950, 450)); 
         cards.setBackground(DARK_BLUE);
 
         cards.add(createWelcomePanel(), "home");
-        cards.add(createAddProductPanel(), "addProduct"); 
-        cards.add(createAddCustomerPanel(), "addCustomer"); 
-        cards.add(createPlaceholderPanel("3. Place Order not implemented yet."), "placeOrder");
-        cards.add(createViewCustomerOrdersPanel(), "viewOrders"); 
-        cards.add(createPlaceholderPanel("5. Add Review not implemented yet."), "addReview");
-        cards.add(createExtractReviewsPanel(), "extractReviews"); 
-        cards.add(createTopProductsPanel(), "topProducts");       
+        cards.add(createAddProductPanel(), "addProduct");
+        cards.add(createAddCustomerPanel(), "addCustomer");
+        cards.add(createPlaceOrderPanel(), "placeOrder");
+        cards.add(createViewCustomerOrdersPanel(), "viewOrders");
+        cards.add(createAddReviewPanel(), "addReview");
+        cards.add(createExtractReviewsPanel(), "extractReviews");
+        cards.add(createTopProductsPanel(), "topProducts");
         cards.add(createOrdersBetweenDatesPanel(), "ordersBetween");
         cards.add(createCommonProductsPanel(), "commonProducts");
-
 
         container.add(Box.createRigidArea(new Dimension(0, 10)));
         container.add(cards);
@@ -276,8 +988,25 @@ public class ManagementSystemGUI {
         placeOrderBtn.addActionListener(e -> cardLayout.show(cards, "placeOrder"));
         viewOrdersBtn.addActionListener(e -> cardLayout.show(cards, "viewOrders"));
         addReviewBtn.addActionListener(e -> cardLayout.show(cards, "addReview"));
-        extractReviewsBtn.addActionListener(e -> cardLayout.show(cards, "extractReviews"));
-        topProductsBtn.addActionListener(e -> cardLayout.show(cards, "topProducts"));
+        extractReviewsBtn.addActionListener(e -> {
+            try {
+                int id = Integer.parseInt(JOptionPane.showInputDialog(frame, "Enter Customer ID:"));
+                String reviewData = customers.extractCustomerReviews(id);
+                Dimension wideSize = new Dimension(900, 300);
+                String resultCardName = "reviewsResult_" + System.currentTimeMillis();
+                JPanel resultsPanel = createLargeTextResultsPanel(reviewData, "Reviews by Customer " + id, wideSize);
+                cards.add(resultsPanel, resultCardName);
+                cardLayout.show(cards, resultCardName);
+            } catch (NumberFormatException | NullPointerException ex) {  }
+        });
+        topProductsBtn.addActionListener(e -> {
+            String topData = products.getTop3Products();
+            Dimension wideSize = new Dimension(900, 300);
+            String resultCardName = "topProductsResult_" + System.currentTimeMillis();
+            JPanel resultsPanel = createLargeTextResultsPanel(topData, "Top 3 Products by Rating", wideSize);
+            cards.add(resultsPanel, resultCardName);
+            cardLayout.show(cards, resultCardName);
+        });
         ordersBetweenDatesBtn.addActionListener(e -> cardLayout.show(cards, "ordersBetween"));
         commonProductsBtn.addActionListener(e -> cardLayout.show(cards, "commonProducts"));
         exitBtn.addActionListener(e -> frame.dispose());
@@ -301,7 +1030,6 @@ public class ManagementSystemGUI {
     private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(DARK_BLUE);
-
         JLabel instructions = new JLabel("<html><div style='text-align: center;'>"
                 + "Welcome to your E-commerce System!"
                 + "<br><br>Manage products, track orders, and monitor customers."
@@ -310,86 +1038,71 @@ public class ManagementSystemGUI {
         instructions.setForeground(Color.WHITE);
         instructions.setFont(new Font("Arial", Font.ITALIC, 18));
         instructions.setBorder(BorderFactory.createEmptyBorder(100, 0, 0, 0));
-
         panel.add(instructions, BorderLayout.CENTER);
         return panel;
     }
 
-    private JPanel createPlaceholderPanel(String text) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(DARK_BLUE);
-        JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setForeground(Color.WHITE);
-        label.setFont(new Font("Arial", Font.PLAIN, 18));
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
-    }
-
-    // --- 1. Add Product ---
+    // 1. Add Product
     private JPanel createAddProductPanel() {
+        // ... (Implementation preserved)
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-
         Font labelFont = new Font("Arial", Font.BOLD, 18);
         Font fieldFont = new Font("Arial", Font.PLAIN, 18);
         Dimension fieldSize = new Dimension(200, 35);
-
         JLabel idLabel = new JLabel("Product ID:");
         idLabel.setForeground(Color.WHITE);
         idLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(idLabel, gbc);
-
         JTextField idField = new JTextField();
         idField.setPreferredSize(fieldSize);
         idField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(idField, gbc);
-
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(nameLabel, gbc);
-
         JTextField nameField = new JTextField();
         nameField.setPreferredSize(fieldSize);
         nameField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(nameField, gbc);
-
         JLabel priceLabel = new JLabel("Price:");
         priceLabel.setForeground(Color.WHITE);
         priceLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         panel.add(priceLabel, gbc);
-
         JTextField priceField = new JTextField();
         priceField.setPreferredSize(fieldSize);
         priceField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(priceField, gbc);
-
         JLabel stockLabel = new JLabel("Stock:");
         stockLabel.setForeground(Color.WHITE);
         stockLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         panel.add(stockLabel, gbc);
-
         JTextField stockField = new JTextField();
         stockField.setPreferredSize(fieldSize);
         stockField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(stockField, gbc);
-
         JButton submit = new JButton("Add Product");
         submit.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
         panel.add(submit, gbc);
 
         submit.addActionListener(e -> {
@@ -399,73 +1112,68 @@ public class ManagementSystemGUI {
                 double price = Double.parseDouble(priceField.getText().trim());
                 int stock = Integer.parseInt(stockField.getText().trim());
                 products.addProduct(new Product(id, name, price, stock));
-                JOptionPane.showMessageDialog(frame, "Product added successfully.");
                 idField.setText("");
                 nameField.setText("");
                 priceField.setText("");
                 stockField.setText("");
                 cardLayout.show(cards, "home");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Invalid input.");
+                JOptionPane.showMessageDialog(frame, "Error: Invalid input. Check ID (int), Price (double), and Stock (int).", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-
         return panel;
     }
 
-    // --- 2. Add Customer ---
+    // 2. Add Customer
     private JPanel createAddCustomerPanel() {
+        // ... (Implementation preserved)
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-
         Font labelFont = new Font("Arial", Font.BOLD, 18);
         Font fieldFont = new Font("Arial", Font.PLAIN, 18);
         Dimension fieldSize = new Dimension(200, 35);
-
         JLabel idLabel = new JLabel("Customer ID:");
         idLabel.setForeground(Color.WHITE);
         idLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(idLabel, gbc);
-
         JTextField idField = new JTextField();
         idField.setPreferredSize(fieldSize);
         idField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(idField, gbc);
-
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(nameLabel, gbc);
-
         JTextField nameField = new JTextField();
         nameField.setPreferredSize(fieldSize);
         nameField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(nameField, gbc);
-
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setForeground(Color.WHITE);
         emailLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         panel.add(emailLabel, gbc);
-
         JTextField emailField = new JTextField();
         emailField.setPreferredSize(fieldSize);
         emailField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(emailField, gbc);
-
         JButton submit = new JButton("Add Customer");
         submit.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
         panel.add(submit, gbc);
 
         submit.addActionListener(e -> {
@@ -474,325 +1182,625 @@ public class ManagementSystemGUI {
                 String name = nameField.getText().trim();
                 String email = emailField.getText().trim();
                 customers.registerCustomer(id, name, email);
-                JOptionPane.showMessageDialog(frame, "Customer added successfully.");
                 idField.setText("");
                 nameField.setText("");
                 emailField.setText("");
                 cardLayout.show(cards, "home");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Invalid input.");
+                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        return panel;
+    }
+
+    // 3. Place New Order
+    private JPanel createPlaceOrderPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBackground(DARK_BLUE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font fieldFont = new Font("Arial", Font.PLAIN, 14);
+        Dimension fieldSize = new Dimension(150, 25);
+
+        JTextField customerIdField = new JTextField();
+        JTextField orderIdField = new JTextField();
+        JTextField dateField = new JTextField(LocalDate.now().toString());
+        JTextField productIdField = new JTextField();
+
+        customerIdField.setPreferredSize(fieldSize);
+        orderIdField.setPreferredSize(fieldSize);
+        dateField.setPreferredSize(fieldSize);
+        productIdField.setPreferredSize(fieldSize);
+
+        customerIdField.setFont(fieldFont);
+        orderIdField.setFont(fieldFont);
+        dateField.setFont(fieldFont);
+        productIdField.setFont(fieldFont);
+
+        JTextArea productListArea = new JTextArea(products.getAllProductsForOrder());
+        productListArea.setEditable(false);
+        productListArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane productScrollPane = new JScrollPane(productListArea);
+        productScrollPane.setPreferredSize(new Dimension(300, 200));
+
+        JTextArea selectedProductsArea = new JTextArea(5, 20);
+        selectedProductsArea.setEditable(false);
+        selectedProductsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane selectedScrollPane = new JScrollPane(selectedProductsArea);
+
+        LinkedList<Product> selectedProducts = new LinkedList<>();
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        JLabel customerLabel = new JLabel("Customer ID:");
+        customerLabel.setForeground(Color.WHITE);
+        panel.add(customerLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(customerIdField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel orderLabel = new JLabel("Order ID:");
+        orderLabel.setForeground(Color.WHITE);
+        panel.add(orderLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(orderIdField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        JLabel dateLabel = new JLabel("Date (YYYY-MM-DD):");
+        dateLabel.setForeground(Color.WHITE);
+        panel.add(dateLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(dateField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        JLabel addLabel = new JLabel("Product ID to Add:");
+        addLabel.setForeground(Color.WHITE);
+        panel.add(addLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(productIdField, gbc);
+
+        JButton addProductToOrderBtn = new JButton("Add to Cart");
+        gbc.gridx = 2;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        panel.add(addProductToOrderBtn, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.5;
+        gbc.fill = GridBagConstraints.BOTH;
+        JLabel availableLabel = new JLabel("Available Products (ID | Name | Price | Stock):");
+        availableLabel.setForeground(Color.WHITE);
+        panel.add(availableLabel, gbc);
+        gbc.gridy = 5;
+        panel.add(productScrollPane, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.5;
+        gbc.weighty = 0.5;
+        gbc.fill = GridBagConstraints.BOTH;
+        JLabel selectedLabel = new JLabel("Selected Products:");
+        selectedLabel.setForeground(Color.WHITE);
+        panel.add(selectedLabel, gbc);
+        gbc.gridy = 5;
+        panel.add(selectedScrollPane, gbc);
+
+        JButton checkoutBtn = new JButton("Place Order (Checkout)");
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(checkoutBtn, gbc);
+
+        addProductToOrderBtn.addActionListener(e -> {
+            try {
+                int pId = Integer.parseInt(productIdField.getText().trim());
+                Product p = products.findProductById(pId);
+                if (p != null) {
+                    selectedProducts.insert(p);
+                    String productEntry = String.format("ID %d: %s ($%.2f)\n", p.getProductId(), p.getName(), p.getPrice());
+                    selectedProductsArea.append(productEntry);
+                    productIdField.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Product ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Invalid Product ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        checkoutBtn.addActionListener(e -> {
+            try {
+                int cId = Integer.parseInt(customerIdField.getText().trim());
+                int oId = Integer.parseInt(orderIdField.getText().trim());
+                String date = dateField.getText().trim();
+
+                if (selectedProducts.empty()) {
+                    JOptionPane.showMessageDialog(frame, "Please add products before checking out.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    LocalDate.parse(date);
+                } catch (DateTimeParseException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid Date format. Use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                customers.placeOrder(cId, oId, selectedProducts, date);
+
+                JOptionPane.showMessageDialog(frame, "Order placed successfully for Customer ID: " + cId);
+
+                customerIdField.setText("");
+                orderIdField.setText("");
+                dateField.setText(LocalDate.now().toString());
+                selectedProducts.current = selectedProducts.head = null;
+                selectedProductsArea.setText("");
+                cardLayout.show(cards, "home");
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Invalid Customer ID or Order ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         return panel;
     }
 
-    // --- 4. View Customer Orders ---
+    // 4. View Customer Orders
     private JPanel createViewCustomerOrdersPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.CENTER;
-        
+
         Font labelFont = new Font("Arial", Font.BOLD, 18);
         Font fieldFont = new Font("Arial", Font.PLAIN, 18);
-        Dimension fieldSize = new Dimension(250, 40);
+        final Dimension fieldSize = new Dimension(250, 40); 
+
+        // 1. Customer ID Label
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
 
         JLabel idLabel = new JLabel("Customer ID:");
         idLabel.setForeground(Color.WHITE);
         idLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
         panel.add(idLabel, gbc);
 
-        JTextField idField = new JTextField();
-        idField.setPreferredSize(fieldSize);
+        // 2. Input Field
+        JTextField idField = new JTextField() {
+            @Override
+            public Dimension getMinimumSize() {
+                return fieldSize;
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                return fieldSize;
+            }
+        };
+
         idField.setFont(fieldFont);
+
         gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0; // Fixed width column
+        gbc.fill = GridBagConstraints.NONE;
         panel.add(idField, gbc);
-        
-        JTextArea outputArea = new JTextArea(10, 35);
-        outputArea.setEditable(false);
-        outputArea.setFont(fieldFont);
-        JScrollPane scrollPane = new JScrollPane(outputArea);
-        
-        scrollPane.setVisible(false);
+        // ----------------------------------------------------------------------
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.BOTH; 
-        gbc.weighty = 1.0; 
-        panel.add(scrollPane, gbc);
-
+        // 3. Show Button
         JButton showBtn = new JButton("Show Orders");
         showBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-        gbc.weighty = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weighty = 0.0;
         panel.add(showBtn, gbc);
-        
+
+        // 4. Output Area
+        JTextArea outputArea = new JTextArea(10, 90);
+        outputArea.setEditable(false);
+        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+
+        scrollPane.setVisible(false);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        panel.add(scrollPane, gbc);
+        // ---------------------------------------------------------
+
         showBtn.addActionListener(e -> {
-              try {
+            try {
                 int id = Integer.parseInt(idField.getText().trim());
                 String orderData = customers.viewOrderHistory(id);
                 outputArea.setText(orderData);
                 JOptionPane.showMessageDialog(frame, "Orders displayed below.");
-                scrollPane.setVisible(true); 
-                panel.revalidate(); 
+                scrollPane.setVisible(true);
+                panel.revalidate();
                 panel.repaint();
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID.");
+                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 outputArea.setText("");
-                scrollPane.setVisible(false); 
+                scrollPane.setVisible(false);
             }
         });
-        
         return panel;
     }
-    
-    // --- 6. Extract Reviews from Specific Customer ---
+
+    // 5. Add Review for Product
+    private JPanel createAddReviewPanel() {
+        // ... (Implementation preserved)
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
+        panel.setBackground(DARK_BLUE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.CENTER;
+        Font labelFont = new Font("Arial", Font.BOLD, 16);
+        Font fieldFont = new Font("Arial", Font.PLAIN, 16);
+        Dimension fieldSize = new Dimension(250, 30);
+        JTextField reviewIdField = new JTextField();
+        JTextField productIdField = new JTextField();
+        JTextField customerIdField = new JTextField();
+        JTextField ratingField = new JTextField();
+        JTextArea commentArea = new JTextArea(3, 20);
+        commentArea.setLineWrap(true);
+        commentArea.setWrapStyleWord(true);
+        JScrollPane commentScrollPane = new JScrollPane(commentArea);
+        reviewIdField.setPreferredSize(fieldSize);
+        productIdField.setPreferredSize(fieldSize);
+        customerIdField.setPreferredSize(fieldSize);
+        ratingField.setPreferredSize(fieldSize);
+        reviewIdField.setFont(fieldFont);
+        productIdField.setFont(fieldFont);
+        customerIdField.setFont(fieldFont);
+        ratingField.setFont(fieldFont);
+        commentArea.setFont(fieldFont);
+        JLabel revIdLabel = new JLabel("Review ID:");
+        revIdLabel.setForeground(Color.WHITE);
+        revIdLabel.setFont(labelFont);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(revIdLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(reviewIdField, gbc);
+        JLabel prodIdLabel = new JLabel("Product ID:");
+        prodIdLabel.setForeground(Color.WHITE);
+        prodIdLabel.setFont(labelFont);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(prodIdLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(productIdField, gbc);
+        JLabel custIdLabel = new JLabel("Customer ID:");
+        custIdLabel.setForeground(Color.WHITE);
+        custIdLabel.setFont(labelFont);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(custIdLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(customerIdField, gbc);
+        JLabel ratingLabel = new JLabel("Rating (1-5 Stars):");
+        ratingLabel.setForeground(Color.WHITE);
+        ratingLabel.setFont(labelFont);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(ratingLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(ratingField, gbc);
+        JLabel commentLabel = new JLabel("Comment:");
+        commentLabel.setForeground(Color.WHITE);
+        commentLabel.setFont(labelFont);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(commentLabel, gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(commentScrollPane, gbc);
+        JButton submit = new JButton("Add Review");
+        submit.setFont(new Font("Arial", Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(submit, gbc);
+
+        submit.addActionListener(e -> {
+            try {
+                int reviewId = Integer.parseInt(reviewIdField.getText().trim());
+                int productId = Integer.parseInt(productIdField.getText().trim());
+                int customerId = Integer.parseInt(customerIdField.getText().trim());
+                int rating = Integer.parseInt(ratingField.getText().trim());
+                String comment = commentArea.getText().trim();
+                if (rating < 1 || rating > 5) {
+                    throw new InvalidRatingException("Rating must be between 1 and 5 stars.");
+                }
+                Review newReview = new Review(reviewId, productId, rating, customerId, comment);
+                products.addReview(productId, newReview);
+                JOptionPane.showMessageDialog(frame, "Review added successfully!");
+                reviewIdField.setText("");
+                productIdField.setText("");
+                customerIdField.setText("");
+                ratingField.setText("");
+                commentArea.setText("");
+                cardLayout.show(cards, "home");
+            } catch (InvalidRatingException ex) {
+                JOptionPane.showMessageDialog(frame, "ERROR: " + ex.getMessage(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Error: Invalid input. Check IDs and Rating (int).", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        return panel;
+    }
+
+    // 6. Extract Reviews from Specific Customer
     private JPanel createExtractReviewsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
-        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-        
-        Font labelFont = new Font("Arial", Font.BOLD, 18);
-        Dimension fieldSize = new Dimension(250, 40);
-
-        JLabel idLabel = new JLabel("Customer ID:");
-        idLabel.setForeground(Color.WHITE);
-        idLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(idLabel, gbc);
-
-        JTextField idField = new JTextField();
-        idField.setPreferredSize(fieldSize);
-        idField.setFont(labelFont);
-        gbc.gridx = 1;
-        panel.add(idField, gbc);
-        
-        JButton showBtn = new JButton("Extract Reviews");
-        showBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+        JLabel infoLabel = new JLabel("Click 'Extract Customer Reviews' on the menu to input ID.");
+        infoLabel.setForeground(Color.WHITE);
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 18));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
-        panel.add(showBtn, gbc);
-        
+        panel.add(infoLabel, gbc);
         JPanel filler = new JPanel();
         filler.setBackground(DARK_BLUE);
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        gbc.weighty = 1.0; 
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(filler, gbc);
-
-        showBtn.addActionListener(e -> {
-              try {
-                int id = Integer.parseInt(idField.getText().trim());
-                String reviewData = customers.getCustomerReviews(id);
-                
-                String resultCardName = "reviewsResult_" + System.currentTimeMillis();
-                JPanel resultsPanel = createLargeTextResultsPanel(reviewData, "Reviews by Customer " + id);
-                
-                cards.add(resultsPanel, resultCardName);
-                cardLayout.show(cards, resultCardName);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID.");
-            }
-        });
-        
         return panel;
     }
-    
-    // --- 7. Show Top 3 Products by Average Rating ---
+
+    // 7. Show Top 3 Products by Average Rating
     private JPanel createTopProductsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-
-        JLabel infoLabel = new JLabel("Click below to see the current Top 3 Products (from files).");
+        JLabel infoLabel = new JLabel("Click 'Top 3 Products by Avg Rating' on the menu to view results.");
         infoLabel.setForeground(Color.WHITE);
         infoLabel.setFont(new Font("Arial", Font.ITALIC, 18));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         panel.add(infoLabel, gbc);
-
-        JButton showBtn = new JButton("Show Top 3 Products");
-        showBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-        panel.add(showBtn, gbc);
-        
         JPanel filler = new JPanel();
         filler.setBackground(DARK_BLUE);
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        gbc.weighty = 1.0; 
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(filler, gbc);
-
-        showBtn.addActionListener(e -> {
-            String topData = products.getTop3Products();
-            String resultCardName = "topProductsResult_" + System.currentTimeMillis();
-            
-            JPanel resultsPanel = createLargeTextResultsPanel(topData, "Top 3 Products by Rating");
-            
-            cards.add(resultsPanel, resultCardName);
-            cardLayout.show(cards, resultCardName);
-        });
-
         return panel;
     }
-    
-    // --- 8. Orders Between Two Dates ---
+
+    // 8. Orders Between Two Dates
     private JPanel createOrdersBetweenDatesPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-
         Font labelFont = new Font("Arial", Font.BOLD, 18);
         Font fieldFont = new Font("Arial", Font.PLAIN, 18);
-        
-        Dimension fieldSize = new Dimension(300, 45); 
+        Dimension fieldSize = new Dimension(300, 45);
 
         JLabel fromLabel = new JLabel("From Date (yyyy-mm-dd):");
         fromLabel.setForeground(Color.WHITE);
         fromLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(fromLabel, gbc);
-
         JTextField fromField = new JTextField();
         fromField.setPreferredSize(fieldSize);
         fromField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(fromField, gbc);
-
         JLabel toLabel = new JLabel("To Date (yyyy-mm-dd):");
         toLabel.setForeground(Color.WHITE);
         toLabel.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(toLabel, gbc);
-
         JTextField toField = new JTextField();
         toField.setPreferredSize(fieldSize);
         toField.setFont(fieldFont);
         gbc.gridx = 1;
         panel.add(toField, gbc);
-        
+
         JButton showBtn = new JButton("Show Orders");
         showBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        gbc.weighty = 0; 
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weighty = 0;
         panel.add(showBtn, gbc);
-        
+
         JPanel filler = new JPanel();
         filler.setBackground(DARK_BLUE);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        gbc.weighty = 1.0; 
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(filler, gbc);
 
         showBtn.addActionListener(e -> {
             String from = fromField.getText().trim();
             String to = toField.getText().trim();
-            
+
             if (from.isEmpty() || to.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Enter both start and end dates.");
+                JOptionPane.showMessageDialog(frame, "Enter both start and end dates.", "Input Error", JOptionPane.ERROR_MESSAGE);
             } else {
+                try {
+                    LocalDate.parse(from);
+                    LocalDate.parse(to);
+                } catch (DateTimeParseException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid Date format. Use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 String orderList = orders.showOrdersBetween(from, to);
-                
+                Dimension wideSize = new Dimension(900, 200);
                 String resultCardName = "ordersResult_" + System.currentTimeMillis();
-                JPanel resultsPanel = createOrdersResultsPanel(orderList, from, to);
-                
+                JPanel resultsPanel = createOrdersResultsPanel(orderList, from, to, wideSize);
+
                 cards.add(resultsPanel, resultCardName);
                 cardLayout.show(cards, resultCardName);
             }
         });
-
         return panel;
     }
-    
-    // --- 9. Common Reviewed Products Between Two Customers ---
+
+    // 9. Common Reviewed Products Between Two Customers
     private JPanel createCommonProductsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
-        
+
         Font labelFont = new Font("Arial", Font.BOLD, 18);
         Dimension fieldSize = new Dimension(150, 40);
 
+        // 1. Create a container for the input fields
+        JPanel inputContainer = new JPanel(new GridBagLayout());
+        inputContainer.setBackground(DARK_BLUE);
+
+        GridBagConstraints gbcInput = new GridBagConstraints();
+        gbcInput.insets = new Insets(5, 10, 5, 10);
+        gbcInput.anchor = GridBagConstraints.CENTER;
+        gbcInput.fill = GridBagConstraints.NONE;
+
+        // Input Field Setup
+        // ID 1 Row
         JLabel id1Label = new JLabel("Customer ID 1:");
         id1Label.setForeground(Color.WHITE);
         id1Label.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(id1Label, gbc);
+        gbcInput.gridx = 0;
+        gbcInput.gridy = 0;
+        gbcInput.anchor = GridBagConstraints.EAST;
+        inputContainer.add(id1Label, gbcInput);
 
         JTextField id1Field = new JTextField();
         id1Field.setPreferredSize(fieldSize);
         id1Field.setFont(labelFont);
-        gbc.gridx = 1;
-        panel.add(id1Field, gbc);
-        
+        gbcInput.gridx = 1;
+        gbcInput.gridy = 0;
+        gbcInput.anchor = GridBagConstraints.WEST;
+        inputContainer.add(id1Field, gbcInput);
+
+        // ID 2 Row
         JLabel id2Label = new JLabel("Customer ID 2:");
         id2Label.setForeground(Color.WHITE);
         id2Label.setFont(labelFont);
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(id2Label, gbc);
+        gbcInput.gridx = 0;
+        gbcInput.gridy = 1;
+        gbcInput.anchor = GridBagConstraints.EAST;
+        inputContainer.add(id2Label, gbcInput);
 
         JTextField id2Field = new JTextField();
         id2Field.setPreferredSize(fieldSize);
         id2Field.setFont(labelFont);
-        gbc.gridx = 1;
-        panel.add(id2Field, gbc);
-        
+        gbcInput.gridx = 1;
+        gbcInput.gridy = 1;
+        gbcInput.anchor = GridBagConstraints.WEST;
+        inputContainer.add(id2Field, gbcInput);
+
+        // Add Input Container to the Main Panel 
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0.0; 
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(inputContainer, gbc);
+
+        // 2. Show Button
         JButton showBtn = new JButton("Find Common Products");
         showBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         panel.add(showBtn, gbc);
-        
+
+        // 3. Filler (Ensures vertical and horizontal stretch for the whole panel)
         JPanel filler = new JPanel();
         filler.setBackground(DARK_BLUE);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        gbc.weighty = 1.0; 
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weighty = 1.0;
+        gbc.weightx = 1.0; 
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(filler, gbc);
 
-
         showBtn.addActionListener(e -> {
-              try {
+            try {
                 int id1 = Integer.parseInt(id1Field.getText().trim());
                 int id2 = Integer.parseInt(id2Field.getText().trim());
-                
-                String commonData = customers.getCommonReviewedProducts(id1, id2);
-                
+
+                String commonData = products.commonProducts(id1, id2);
+
                 String resultCardName = "commonProductsResult_" + System.currentTimeMillis();
-                JPanel resultsPanel = createLargeTextResultsPanel(commonData, "Common Reviewed Products");
-                
+                // Using a wide size for the output panel
+                Dimension wideSize = new Dimension(900, 300);
+                JPanel resultsPanel = createLargeTextResultsPanel(commonData, "Common Reviewed Products", wideSize);
+
                 cards.add(resultsPanel, resultCardName);
                 cardLayout.show(cards, resultCardName);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID(s).");
+                JOptionPane.showMessageDialog(frame, "Error: Invalid Customer ID(s).", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        
+
         return panel;
     }
-    
-    // --- Reusable Large Results Panel (for Options 6, 7, 9) ---
-    private JPanel createLargeTextResultsPanel(String results, String title) {
+
+    // Reusable Large Results Panel
+    private JPanel createLargeTextResultsPanel(String results, String title, Dimension scrollPaneSize) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
@@ -801,90 +1809,91 @@ public class ManagementSystemGUI {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.BOTH;
-        
+
         Font titleFont = new Font("Arial", Font.BOLD, 22);
         Font outputFont = new Font("Monospaced", Font.PLAIN, 16);
 
         JLabel titleLabel = new JLabel(title);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleFont);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         panel.add(titleLabel, gbc);
 
-        // FIX: Increased width to 100 columns and set preferred size explicitly
-        JTextArea outputArea = new JTextArea(20, 100); 
+        JTextArea outputArea = new JTextArea(20, 90);
         outputArea.setText(results);
         outputArea.setEditable(false);
         outputArea.setFont(outputFont);
         outputArea.setForeground(Color.BLACK);
-        
-        JScrollPane scrollPane = new JScrollPane(outputArea);
-        scrollPane.setPreferredSize(new Dimension(750, 300)); // Explicit size hint
 
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setPreferredSize(scrollPaneSize); 
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         panel.add(scrollPane, gbc);
 
         JButton backBtn = new JButton("<< Back to Main Menu");
         backBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.NONE;
         panel.add(backBtn, gbc);
 
         backBtn.addActionListener(e -> cardLayout.show(cards, "home"));
-
         return panel;
     }
 
-    // --- 8. Orders Between Dates Results Panel (Kept specific) ---
-    private JPanel createOrdersResultsPanel(String results, String from, String to) {
+    // 8. Orders Between Dates Results Panel
+    private JPanel createOrdersResultsPanel(String results, String from, String to, Dimension scrollPaneSize) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.BOTH;
-
         Font titleFont = new Font("Arial", Font.BOLD, 22);
         Font outputFont = new Font("Monospaced", Font.PLAIN, 16);
-
         JLabel titleLabel = new JLabel("Orders Found (" + from + " to " + to + ")");
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleFont);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         panel.add(titleLabel, gbc);
-
-        // FIX: Increased width to 100 columns and set preferred size explicitly
-        JTextArea outputArea = new JTextArea(12, 100); 
+        JTextArea outputArea = new JTextArea(12, 90);
         outputArea.setText(results);
         outputArea.setEditable(false);
         outputArea.setFont(outputFont);
         outputArea.setForeground(Color.BLACK);
-
         JScrollPane scrollPane = new JScrollPane(outputArea);
-        scrollPane.setPreferredSize(new Dimension(750, 200)); // Explicit size hint
-
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+        scrollPane.setPreferredSize(scrollPaneSize); 
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         panel.add(scrollPane, gbc);
-
         JButton backBtn = new JButton("<< Back to Main Menu");
         backBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.NONE;
         panel.add(backBtn, gbc);
-
         backBtn.addActionListener(e -> cardLayout.show(cards, "home"));
-
         return panel;
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(ManagementSystemGUI::new);
