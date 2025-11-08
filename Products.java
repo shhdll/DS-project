@@ -148,7 +148,7 @@ public class Products {
 
             if (avrRating > 0) {
                 System.out.println((count + 1) + "- " + currentProduct.getName());
-                System.out.println("   Rating: " + "★ " + avrRating + " out of 5");
+                System.out.println("   Rating: " + "- " + avrRating + " out of 5");
                 System.out.println("   Price: " + currentProduct.getPrice() + " SAR");
                 System.out.println();
                 count++;
@@ -247,7 +247,7 @@ public class Products {
             // Show average rating if available
             double avgRating = calculateAverageRating(p);
             if (avgRating > 0) {
-                System.out.println("   Average Rating: " + String.format("%.1f", avgRating) + " ★");
+                System.out.println("   Average Rating: " + String.format("%.1f", avgRating) );
             }
             System.out.println();
 
