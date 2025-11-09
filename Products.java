@@ -2,11 +2,12 @@ public class Products {
     private LinkedList<Product> allProducts = new LinkedList<>(); // list for all products
 
     // add new product to allProducts list
-    public void addProduct(Product p) {
-        if (findProductById(p.getProductId()) == null) { // check if product with same ID already exists
+    public boolean addProduct(Product p) {
+        if (findProductById(p.getProductId()) == null) {
             allProducts.insert(p);
-            
-        } 
+            return true;
+        }
+        return false;
     }
 
     // remove product
@@ -244,7 +245,7 @@ public class Products {
             // Show average rating if available
             double avgRating = calculateAverageRating(p);
             if (avgRating > 0) {
-                System.out.println("   Average Rating: " + String.format("%.1f", avgRating) );
+                System.out.println("   Average Rating: " + String.format("%.1f", avgRating));
             }
             System.out.println();
 

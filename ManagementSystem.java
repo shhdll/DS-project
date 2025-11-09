@@ -9,7 +9,7 @@ public class ManagementSystem {
 
         Scanner sc = new Scanner(System.in);
 
-        // System data 
+        // System data
         Customers customers = new Customers();
         Products products = new Products();
         Orders orders = new Orders();
@@ -71,7 +71,12 @@ public class ManagementSystem {
                     int stock = sc.nextInt();
                     sc.nextLine();
                     Product newProduct = new Product(pid, pname, price, stock);
-                    products.addProduct(newProduct);
+                    boolean added = products.addProduct(newProduct);
+                    if (added) {
+                        System.out.println(" Product '" + pname + "' added successfully!");
+                    } else {
+                        System.out.println("Product ID " + pid + " already exists!");
+                    }
                     break;
 
                 case 2:
@@ -159,6 +164,12 @@ public class ManagementSystem {
                     System.out.print("Enter Customer ID: ");
                     int reviewCustomerId = sc.nextInt();
                     sc.nextLine();
+                    // ONLY CHECK: Product exists
+                    Product product = products.findProductById(reviewProductId);
+                    if (product == null) {
+                        System.out.println("Product does not exist!");
+                        break;
+                    }
 
                     System.out.print("Enter Rating (1-5 stars): ");
                     int newRating = sc.nextInt();
@@ -244,7 +255,7 @@ public class ManagementSystem {
         sc.close();
     }
 
-    // CSV loading methods 
+    // CSV loading methods
     // Load customers, registers each customer
     private static void loadCustomers(String filePath, Customers customers) {
         try {
