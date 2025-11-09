@@ -19,7 +19,6 @@ public class ManagementSystem {
         String customersFile = "dataset/customers.csv";
         String productsFile = "dataset/prodcuts.csv";
         String ordersFile = "dataSet/orders.csv";
-        /// erorrrr the system didnt read this !
         String reviewsFile = "dataset/reviews.csv";
 
         // Load data from CSV files
@@ -340,7 +339,7 @@ public class ManagementSystem {
                 orders.getOrderList().insert(newOrder);
 
                 // Link order to customer
-                CustomerRecord customer = customers.findCustomerById(customerId);
+                Customer customer = customers.findCustomerById(customerId);
                 if (customer != null) {
                     customer.getOrders().insert(newOrder);
                 } else {
@@ -395,7 +394,7 @@ public class ManagementSystem {
     // Link a review to its corresponding customer and product
     private static void assignReviewToCustomerAndProduct(Review r, Customers customers, Products products) {
         // Find the matching customer
-        CustomerRecord customer = customers.findCustomerById(r.getCustomerId());
+        Customer customer = customers.findCustomerById(r.getCustomerId());
         if (customer != null) {
             customer.addReview(r);
         } else {

@@ -1,4 +1,4 @@
-public class CustomerRecord {
+public class Customer {
 
     private int customerId;
     private String name;
@@ -7,7 +7,7 @@ public class CustomerRecord {
     private LinkedList<Review> reviews; // one customer can have many reviews
 
     // Constructor
-    public CustomerRecord(int customerId, String name, String email) {
+    public Customer(int customerId, String name, String email) {
         this.customerId = customerId;
         this.name = name;
         this.email = email;

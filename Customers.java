@@ -1,9 +1,9 @@
 public class Customers {
 
-    private LinkedList<CustomerRecord> allCustomers;
+    private LinkedList<Customer> allCustomers;
 
     public Customers() {
-        allCustomers = new LinkedList<CustomerRecord>();
+        allCustomers = new LinkedList<Customer>();
     }
 
     // Operations:
@@ -14,14 +14,14 @@ public class Customers {
             return;
         }
 
-        CustomerRecord newCustomer = new CustomerRecord(customerId, name, email);
+        Customer newCustomer = new Customer(customerId, name, email);
         allCustomers.insert(newCustomer);
         // System.out.println("Customer registered successfully");
     }
 
     // 2 Place a new order for a specific customer
     public void placeOrder(int customerId, int orderId, LinkedList<Product> productList, String orderDate) {
-        CustomerRecord customer = findCustomerById(customerId);
+        Customer customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found :(");
             return;
@@ -35,7 +35,7 @@ public class Customers {
     // 3 View order history
     public void viewOrderHistory(int customerId) {
         // a: customer is not found
-        CustomerRecord customer = findCustomerById(customerId);
+        Customer customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found :(");
             return;
@@ -58,11 +58,11 @@ public class Customers {
     }
 
     // Find customer by ID
-    public CustomerRecord findCustomerById(int customerId) {
+    public Customer findCustomerById(int customerId) {
         if (allCustomers.empty())
             return null;
 
-        Node<CustomerRecord> temp = allCustomers.getHead();
+        Node<Customer> temp = allCustomers.getHead();
         while (temp != null) {
             if (temp.data.getCustomerId() == customerId)
                 return temp.data;
@@ -91,7 +91,7 @@ public class Customers {
 
     // 4 Extract customer reviews
     public void extractCustomerReviews(int customerId) {
-        CustomerRecord customer = findCustomerById(customerId);
+        Customer customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found");
             return;
@@ -99,7 +99,7 @@ public class Customers {
 
         System.out.println(" Reviews by Customer " + customerId);
         Node<Review> tmp = customer.getReviews().getHead();
-        while (tmp != null) {
+        while (tmp != null) {  //most efficient linear data structure possible.
             Review r = tmp.data;
             System.out.println("- Product " + r.getProductId() + ": " +
                     r.getRating() + " - " + r.getComment());
