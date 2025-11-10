@@ -1,5 +1,6 @@
 
 public class Reviews {
+
     private LinkedList<Review> reviewList;
 
     public Reviews() {
@@ -14,7 +15,17 @@ public class Reviews {
 
     public void editReview(Review r, int rating, String comment) throws InvalidRatingException {
         r.edit(rating, comment);
+    }
 
+    public Review findReviewById(int reviewId) {
+        Node<Review> tmp = reviewList.getHead();
+        while (tmp != null) {
+            if (tmp.data.getReviewId() == reviewId) {
+                return tmp.data;
+            }
+            tmp = tmp.next;
+        }
+        return null; // not found
     }
 
     public double AvrageRating() {
@@ -29,10 +40,14 @@ public class Reviews {
             count++;
             tmp = tmp.next;
         }
-        if (count == 0)
+        if (count == 0) {
             return 0.0;
+        }
 
         return sum / count;
     }
 
+    public void addReview(Review r) {
+        reviewList.insert(r);
+    }
 }

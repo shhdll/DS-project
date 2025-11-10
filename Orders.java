@@ -102,4 +102,33 @@ public class Orders {
         return orderList;
     }
 
+    public boolean cancelOrder(int orderId) {
+        Node<Order> current = orderList.getHead(); 
+        while (current != null) {
+            Order order = current.getData();
+            if (order.getOrderId() == orderId) {
+                if (order.getStatus().equalsIgnoreCase("Cancelled")) {
+                    return false; // already cancelled
+                }
+                order.setStatus("Cancelled");
+                return true;
+            }
+            current = current.getNext();
+        }
+        return false; // not found
+    }
+
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        Node<Order> current = orderList.getHead();
+        while (current != null) {
+            Order order = current.getData();
+            if (order.getOrderId() == orderId) {
+                order.setStatus(newStatus);
+                return true;
+            }
+            current = current.getNext();
+        }
+        return false;
+    }
+
 }

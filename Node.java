@@ -11,4 +11,10 @@ public class Node<T> {
         data = val;
         next = null;
     }
+     public T getData() {
+        return data;
+    }
+    public Node<T> getNext() {
+        return next;
+    }
 }

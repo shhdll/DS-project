@@ -1,4 +1,6 @@
+
 public class Products {
+
     private LinkedList<Product> allProducts = new LinkedList<>(); // list for all products
 
     // add new product to allProducts list
@@ -11,10 +13,9 @@ public class Products {
     }
 
     // remove product
-    public void removeProduct(int productId) {
+    public boolean removeProduct(int productId) {
         if (allProducts.empty()) {
-            System.out.println("No products available to remove.");
-            return;
+            return false; // nothing to remove
         }
 
         allProducts.findFirst();
@@ -22,23 +23,24 @@ public class Products {
             Product p = allProducts.retrieve();
             if (p.getProductId() == productId) {
                 allProducts.remove();
-                System.out.println("Product with ID " + productId + " has been removed.");
-                return; // Found and removed
+                return true; // successfully removed
             }
 
             if (allProducts.last()) {
-                System.out.println("Product with ID " + productId + " not found.");
-                break; // Exit loop if last element reached
+                break; // reached end
             }
 
             allProducts.findNext();
         }
+
+        return false; // not found
     }
 
     // search for a product by ID
     public Product findProductById(int productId) {
-        if (allProducts.empty())
+        if (allProducts.empty()) {
             return null;
+        }
 
         allProducts.findFirst();
         while (true) {
@@ -47,8 +49,9 @@ public class Products {
                 return current1;
             }
 
-            if (allProducts.last())
+            if (allProducts.last()) {
                 break;
+            }
             allProducts.findNext();
         }
         return null;
@@ -56,8 +59,9 @@ public class Products {
 
     // search for a product by Name (i think it's not useful)?
     public Product findProductByName(String name) {
-        if (allProducts.empty())
+        if (allProducts.empty()) {
             return null;
+        }
 
         allProducts.findFirst();
         while (true) {
@@ -66,8 +70,9 @@ public class Products {
                 return current2;
             }
 
-            if (allProducts.last())
+            if (allProducts.last()) {
                 break;
+            }
             allProducts.findNext();
         }
         return null;
@@ -80,7 +85,9 @@ public class Products {
             target.updateProduct(p.getName(), p.getPrice(), p.getStock());
             System.out.println("Product with ID " + id + " has been updated.");
         } else // product with same ID does not exist
+        {
             System.out.println("Product with ID " + id + " does not exist.");
+        }
     }
 
     // to Track out-of-stock products
@@ -151,8 +158,9 @@ public class Products {
                 System.out.println();
                 count++;
             }
-            if (allProducts.last())
+            if (allProducts.last()) {
                 break;
+            }
             allProducts.findNext();
         }
 
@@ -198,8 +206,9 @@ public class Products {
                 System.out.println(count + ". " + p.getName() + " - " + rating + " out of 5 ");
             }
 
-            if (allProducts.last())
+            if (allProducts.last()) {
                 break;
+            }
             allProducts.findNext();
         }
 
@@ -210,16 +219,18 @@ public class Products {
 
     private boolean hasCustomerReviewed(Product p, int customerId) {
         LinkedList<Review> reviews = p.getReviews();
-        if (reviews.empty())
+        if (reviews.empty()) {
             return false;
+        }
 
         reviews.findFirst();
         while (true) {
             if (reviews.retrieve().getCustomerId() == customerId) {
                 return true;
             }
-            if (reviews.last())
+            if (reviews.last()) {
                 break;
+            }
             reviews.findNext();
         }
         return false;
@@ -239,8 +250,8 @@ public class Products {
             Product p = allProducts.retrieve();
             count++;
             System.out.println(count + ". " + p.getName());
-            System.out.println("   ID: " + p.getProductId() + ", Price: " + p.getPrice() + " SAR" +
-                    ", Stock: " + p.getStock());
+            System.out.println("   ID: " + p.getProductId() + ", Price: " + p.getPrice() + " SAR"
+                    + ", Stock: " + p.getStock());
 
             // Show average rating if available
             double avgRating = calculateAverageRating(p);
@@ -249,8 +260,9 @@ public class Products {
             }
             System.out.println();
 
-            if (allProducts.last())
+            if (allProducts.last()) {
                 break;
+            }
             allProducts.findNext();
         }
 

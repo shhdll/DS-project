@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -32,15 +33,20 @@ public class ManagementSystem {
             System.out.println("\n **** Welcome to E-Commerce Management **** ");
             System.out.println("--------------------------------");
             System.out.println("1. Add Product");
-            System.out.println("2. Add Customer");
-            System.out.println("3. Place New Order");
-            System.out.println("4. View Customer Orders");
-            System.out.println("5. Add Review for Product");
-            System.out.println("6. Extract Reviews from Specific Customer");
-            System.out.println("7. Show Top 3 Products by Average Rating");
-            System.out.println("8. View All Orders Between Two Dates");
-            System.out.println("9. Common Reviewed Products Between Two Customers");
-            System.out.println("10. Exit");
+            System.out.println("2. Remove Product");
+            System.out.println("3. Update Product Details");
+            System.out.println("4. Add Customer");
+            System.out.println("5. Place New Order");
+            System.out.println("6. Cancel Order");
+            System.out.println("7. Update Order Status");
+            System.out.println("8. View Customer Orders");
+            System.out.println("9. Add Review for Product");
+            System.out.println("10. Edit Review");
+            System.out.println("11. Extract Reviews from Specific Customer");
+            System.out.println("12. Show Top 3 Products by Average Rating");
+            System.out.println("13. View All Orders Between Two Dates");
+            System.out.println("14. Common Reviewed Products Between Two Customers");
+            System.out.println("15. Exit");
             System.out.println("--------------------------------");
             System.out.print("Select an option: ");
 
@@ -55,8 +61,9 @@ public class ManagementSystem {
             }
 
             switch (choice) {
+
+                // -------------------- PRODUCT MANAGEMENT --------------------
                 case 1:
-                    // Add Product
                     System.out.println("\n* ========== ADD PRODUCT ========== *");
                     System.out.print("Product ID: ");
                     int pid = sc.nextInt();
@@ -72,14 +79,57 @@ public class ManagementSystem {
                     Product newProduct = new Product(pid, pname, price, stock);
                     boolean added = productsobj.addProduct(newProduct);
                     if (added) {
-                        System.out.println(" Product '" + pname + "' added successfully!");
+                        System.out.println("Product '" + pname + "' added successfully!");
                     } else {
                         System.out.println("Product ID " + pid + " already exists!");
                     }
                     break;
 
                 case 2:
-                    // Add Customer
+                    System.out.println("\n* ========== REMOVE PRODUCT ========== *");
+                    System.out.print("Enter Product ID to remove: ");
+                    int removePid = sc.nextInt();
+                    sc.nextLine();
+                    boolean removed = productsobj.removeProduct(removePid);
+                    if (removed) {
+                        System.out.println("Product ID " + removePid + " removed successfully!");
+                    } else {
+                        System.out.println("Product not found.");
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("\n* ========== UPDATE PRODUCT DETAILS ========== *");
+                    System.out.print("Enter Product ID to update: ");
+                    int updatePid = sc.nextInt();
+                    sc.nextLine();
+                    Product existingProduct = productsobj.findProductById(updatePid);
+                    if (existingProduct == null) {
+                        System.out.println("Product not found.");
+                        break;
+                    }
+                    System.out.print("Enter new name (or press Enter to skip): ");
+                    String newName = sc.nextLine();
+                    if (!newName.isEmpty()) {
+                        existingProduct.setName(newName);
+                    }
+                    System.out.print("Enter new price (or -1 to skip): ");
+                    double newPrice = sc.nextDouble();
+                    sc.nextLine();
+                    if (newPrice >= 0) {
+                        existingProduct.setPrice(newPrice);
+                    }
+                    System.out.print("Enter new stock (or -1 to skip): ");
+                    int newStock = sc.nextInt();
+                    sc.nextLine();
+                    if (newStock >= 0) {
+                        existingProduct.setStock(newStock);
+                    }
+                    System.out.println("Product updated successfully!");
+                    break;
+
+                // -------------------- CUSTOMER MANAGEMENT --------------------
+                case 4:
                     System.out.println("\n* ========== ADD CUSTOMER ========== *");
                     System.out.print("Customer ID: ");
                     int cid = sc.nextInt();
@@ -91,8 +141,8 @@ public class ManagementSystem {
                     customersobj.registerCustomer(cid, cname, cemail);
                     break;
 
-                case 3:
-                    // Place New Order
+                // -------------------- ORDER MANAGEMENT --------------------
+                case 5:
                     System.out.println("\n* ========== PLACE NEW ORDER ========== *");
                     System.out.println("\n--- AVAILABLE PRODUCTS ---");
                     productsobj.displayAllProducts();
@@ -106,25 +156,22 @@ public class ManagementSystem {
                     System.out.print("Enter Order Date (YYYY-MM-DD): ");
                     String newOrderDate = sc.nextLine();
 
-                    // Create product list for the order
                     LinkedList<Product> selectedProducts = new LinkedList<>();
                     boolean addingProducts = true;
-
                     System.out.println("\n--- ADD PRODUCTS TO ORDER ---");
                     while (addingProducts) {
-                        System.out.print("Enter Product ID from list above (-1 to checkout): ");
+                        System.out.print("Enter Product ID (-1 to checkout): ");
                         int productId = sc.nextInt();
                         sc.nextLine();
-
                         if (productId == -1) {
                             addingProducts = false;
                         } else {
                             Product product = productsobj.findProductById(productId);
                             if (product != null) {
                                 selectedProducts.insert(product);
-                                System.out.println("Added: " + product.getName() + " | Price: " + product.getPrice() + " SAR");
+                                System.out.println("Added: " + product.getName());
                             } else {
-                                System.out.println("Product ID " + productId + " not found");
+                                System.out.println("Product not found.");
                             }
                         }
                     }
@@ -137,103 +184,139 @@ public class ManagementSystem {
                     }
                     break;
 
-                case 4:
-                    // All orders for a specific customer
+                case 6:
+                    System.out.println("\n* ========== CANCEL ORDER ========== *");
+                    System.out.print("Enter Order ID to cancel: ");
+                    int cancelOrderId = sc.nextInt();
+                    sc.nextLine();
+                    boolean canceled = ordersobj.cancelOrder(cancelOrderId);
+                    if (canceled) {
+                        System.out.println("Order cancelled successfully!");
+                    } else {
+                        System.out.println("Order not found or already cancelled.");
+                    }
+                    break;
+
+                case 7:
+                    System.out.println("\n* ========== UPDATE ORDER STATUS ========== *");
+                    System.out.print("Enter Order ID: ");
+                    int updateOrderId = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter new status: ");
+                    String newStatus = sc.nextLine();
+                    boolean updated = ordersobj.updateOrderStatus(updateOrderId, newStatus);
+                    if (updated) {
+                        System.out.println("Order status updated successfully!");
+                    } else {
+                        System.out.println("Order not found.");
+                    }
+                    break;
+
+                // -------------------- VIEW & REVIEW MANAGEMENT --------------------
+                case 8:
                     System.out.println("\n* ========== VIEW CUSTOMER ORDERS ========== *");
-                    System.out.print("Enter Customer ID to view orders: ");
+                    System.out.print("Enter Customer ID: ");
                     int viewCid = sc.nextInt();
                     sc.nextLine();
                     customersobj.viewOrderHistory(viewCid);
                     break;
 
-                case 5:
-                    // Add Review for Product
+                case 9:
                     System.out.println("\n* ========== ADD PRODUCT REVIEW ========== *");
                     System.out.print("Enter Review ID: ");
                     int newReviewId = sc.nextInt();
                     sc.nextLine();
-
                     System.out.print("Enter Product ID: ");
                     int reviewProductId = sc.nextInt();
                     sc.nextLine();
-
                     System.out.print("Enter Customer ID: ");
                     int reviewCustomerId = sc.nextInt();
                     sc.nextLine();
-
                     Product product = productsobj.findProductById(reviewProductId);
                     if (product == null) {
                         System.out.println("Product does not exist!");
                         break;
                     }
-
-                    System.out.print("Enter Rating (1-5 stars): ");
+                    System.out.print("Enter Rating (1-5): ");
                     int newRating = sc.nextInt();
                     sc.nextLine();
-
-                    System.out.print("Enter Review Comment: ");
+                    System.out.print("Enter Comment: ");
                     String newComment = sc.nextLine();
 
                     try {
                         Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId, newComment);
                         productsobj.addReview(reviewProductId, newReview);
-                        System.out.println("\n Review added successfully!");
-                        System.out.println("Product ID: " + reviewProductId + " | Rating: " + newRating + " stars");
+                        reviewsobj.addReview(newReview);
+                        System.out.println("Review added successfully!");
                     } catch (InvalidRatingException e) {
-                        System.out.println("\n ERROR: " + e.getMessage());
-                        System.out.println("Please enter a rating between 1 to 5 stars.");
+                        System.out.println("Error: " + e.getMessage());
                     }
                     break;
 
-                case 6:
-                    // Extract Reviews from Specific Customer
-                    System.out.println("\n* ========== CUSTOMER REVIEWS  ========== *");
+                case 10:
+                    System.out.println("\n* ========== EDIT REVIEW ========== *");
+                    System.out.print("Enter Review ID: ");
+                    int editReviewId = sc.nextInt();
+                    sc.nextLine();
+                    Review targetReview = reviewsobj.findReviewById(editReviewId);
+                    if (targetReview == null) {
+                        System.out.println("Review not found.");
+                        break;
+                    }
+                    System.out.print("New Rating (1-5): ");
+                    int updatedRating = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("New Comment: ");
+                    String updatedComment = sc.nextLine();
+                    try {
+                        targetReview.edit(updatedRating, updatedComment);
+                        System.out.println("Review updated successfully!");
+                    } catch (InvalidRatingException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
+
+                case 11:
+                    System.out.println("\n* ========== CUSTOMER REVIEWS ========== *");
                     System.out.print("Enter Customer ID: ");
                     int reviewCid = sc.nextInt();
                     sc.nextLine();
                     customersobj.extractCustomerReviews(reviewCid);
                     break;
 
-                case 7:
-                    // Show Top 3 Products by Average Rating
-                    System.out.println("\n* ========== TOP 3 PRODUCTS BY RATING  ========== *");
+                case 12:
+                    System.out.println("\n* ========== TOP 3 PRODUCTS ========== *");
                     productsobj.Top3Products();
-                    break; // ✅ FIXED fallthrough bug
+                    break;
 
-                case 8:
-                    // Show orders within a specified date range
-                    System.out.println("\n* ========== ORDERS BETWEEN DATES  ========== *");
-                    System.out.print("Enter start date (YYYY-MM-DD): ");
+                case 13:
+                    System.out.println("\n* ========== ORDERS BETWEEN DATES ========== *");
+                    System.out.print("Start Date (YYYY-MM-DD): ");
                     String startDate = sc.nextLine();
-                    System.out.print("Enter end date (YYYY-MM-DD): ");
+                    System.out.print("End Date (YYYY-MM-DD): ");
                     String endDate = sc.nextLine();
-
-                    System.out.println("\n--- Orders between " + startDate + " and " + endDate + " ---");
                     String ordersResult = ordersobj.showOrdersBetween(startDate, endDate);
-
                     if (ordersResult.isEmpty()) {
-                        System.out.println("No orders found in this date range.");
-                    } else {
+                        System.out.println("No orders found."); 
+                    }else {
                         System.out.println(ordersResult);
                     }
                     break;
 
-                case 9:
-                    // Common Reviewed Products Between Two Customers
-                    System.out.println("\n* ========== COMMON HIGHLY-RATED PRODUCTS  ========== *");
-                    System.out.print("Enter Customer ID 1: ");
+                case 14:
+                    System.out.println("\n* ========== COMMON REVIEWED PRODUCTS ========== *");
+                    System.out.print("Customer ID 1: ");
                     int c1 = sc.nextInt();
                     sc.nextLine();
-                    System.out.print("Enter Customer ID 2: ");
+                    System.out.print("Customer ID 2: ");
                     int c2 = sc.nextInt();
                     sc.nextLine();
                     productsobj.commonProducts(c1, c2);
                     break;
 
-                case 10:
-                    // Exit program
+                case 15:
                     running = false;
-                    System.out.println("\n* ========== THANK YOU  ========== *");
+                    System.out.println("\n* ========== THANK YOU ========== *");
                     break;
 
                 default:
@@ -245,7 +328,6 @@ public class ManagementSystem {
     }
 
     // ================= CSV LOADING METHODS =================
-
     private static void loadCustomers(String filePath, Customers customers) {
         try {
             File F = new File(filePath);
@@ -296,7 +378,9 @@ public class ManagementSystem {
             sc.nextLine(); // skip header
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
 
                 String[] parts = line.split(",");
                 int orderId = Integer.parseInt(parts[0].trim());
@@ -310,7 +394,9 @@ public class ManagementSystem {
                 for (String pidStr : productIdsStr.split(";")) {
                     int productId = Integer.parseInt(pidStr.trim());
                     Product p = products.findProductById(productId);
-                    if (p != null) orderProducts.insert(p);
+                    if (p != null) {
+                        orderProducts.insert(p);
+                    }
                 }
 
                 Order newOrder = new Order(orderId, customerId, orderProducts, orderDate);
@@ -351,8 +437,9 @@ public class ManagementSystem {
                 String comment = tmpData.substring(fourthComma + 1);
 
                 Review r = new Review(reviewId, productId, rating, customerId, comment);
-                reviews.addReview(reviewId, productId, rating, customerId, comment);
+                reviews.addReview(r);
                 assignReviewToCustomerAndProduct(r, customers, products);
+
             }
 
             FS.close();
