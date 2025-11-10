@@ -453,6 +453,46 @@ public class ManagementSystemGUI {
                 JOptionPane.showMessageDialog(frame, "Customer ID not found :(", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            // Check and Decrement Stock before creating the order
+            if (productList.empty()) {
+                JOptionPane.showMessageDialog(frame, "Cannot place order with no products.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Temporary list copy to iterate without altering the original pointer state
+            LinkedList<Product> productsToProcess = productList.deepCopy();
+
+            productsToProcess.findFirst();
+            while (true) {
+                Product orderedProduct = productsToProcess.retrieve();
+
+                if (orderedProduct != null) {
+                    // Find the actual product object in the central Products list
+                    Product realProduct = products.findProductById(orderedProduct.getProductId());
+
+                    if (realProduct != null) {
+                        if (realProduct.getStock() > 0) {
+                            // **CORE CHANGE: DECREMENT STOCK**
+                            realProduct.setStock(realProduct.getStock() - 1);
+                        } else {
+                            JOptionPane.showMessageDialog(frame, "Stock for " + realProduct.getName() + " is zero. Order cancelled.", "Error", JOptionPane.ERROR_MESSAGE);
+
+                            // If stock is zero for ANY product, cancel the transaction. 
+                            // Note: A real-world system would remove the item, but here we cancel for simplicity.
+                            return;
+                        }
+                    }
+                }
+
+                if (productsToProcess.last()) {
+                    break;
+                }
+                productsToProcess.findNext();
+            }
+            // End of Stock Check and Decrement
+
+            // Proceed with order creation only if stock checks passed
             Order newOrder = new Order(orderId, customerId, productList.deepCopy(), orderDate);
             customer.getOrders().insert(newOrder);
             orders.getOrderList().insert(newOrder);
@@ -597,7 +637,6 @@ public class ManagementSystemGUI {
 
             return false;
         }
-
 
         public Product findProductById(int productId) {
             if (allProducts.empty()) {

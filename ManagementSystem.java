@@ -144,6 +144,12 @@ public class ManagementSystem {
                 // -------------------- ORDER MANAGEMENT --------------------
                 case 5:
                     System.out.println("\n* ========== PLACE NEW ORDER ========== *");
+
+                    // NEW: Show Out-of-Stock List before displaying available products
+                    System.out.println("\n--- ATTENTION: OUT-OF-STOCK WARNING ---");
+                    productsobj.getOutOfStockProducts();
+                    System.out.println("---------------------------------------");
+
                     System.out.println("\n--- AVAILABLE PRODUCTS ---");
                     productsobj.displayAllProducts();
 
@@ -158,32 +164,47 @@ public class ManagementSystem {
 
                     LinkedList<Product> selectedProducts = new LinkedList<>();
                     boolean addingProducts = true;
+                    boolean stockError = false;
+
                     System.out.println("\n--- ADD PRODUCTS TO ORDER ---");
                     while (addingProducts) {
                         System.out.print("Enter Product ID (-1 to checkout): ");
                         int productId = sc.nextInt();
                         sc.nextLine();
+
                         if (productId == -1) {
                             addingProducts = false;
                         } else {
-                            Product product = productsobj.findProductById(productId);
-                            if (product != null) {
-                                selectedProducts.insert(product);
-                                System.out.println("Added: " + product.getName());
+                            // Find the product in the central storage for stock check
+                            Product realProduct = productsobj.findProductById(productId);
+
+                            if (realProduct != null) {
+                                if (realProduct.getStock() > 0) {
+                                    // 1. Decrement Stock on the real product object
+                                    realProduct.setStock(realProduct.getStock() - 1);
+
+                                    // 2. Add product (instance) to the order list
+                                    selectedProducts.insert(realProduct);
+                                    System.out.println("Added: " + realProduct.getName() + " (Stock remaining: " + realProduct.getStock() + ")");
+                                } else {
+                                    System.out.println("ERROR: Stock for " + realProduct.getName() + " is zero. Cannot add.");
+                                    stockError = true;
+                                }
                             } else {
                                 System.out.println("Product not found.");
                             }
                         }
                     }
 
-                    if (!selectedProducts.empty()) {
+                    if (stockError) {
+                        System.out.println("\nOrder cancelled due to stock errors.");
+                    } else if (!selectedProducts.empty()) {
                         customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
-                        System.out.println("Order placed successfully!");
+                        System.out.println("\nOrder placed successfully!");
                     } else {
                         System.out.println("No products added. Order cancelled.");
                     }
                     break;
-
                 case 6:
                     System.out.println("\n* ========== CANCEL ORDER ========== *");
                     System.out.print("Enter Order ID to cancel: ");
@@ -297,8 +318,8 @@ public class ManagementSystem {
                     String endDate = sc.nextLine();
                     String ordersResult = ordersobj.showOrdersBetween(startDate, endDate);
                     if (ordersResult.isEmpty()) {
-                        System.out.println("No orders found."); 
-                    }else {
+                        System.out.println("No orders found.");
+                    } else {
                         System.out.println(ordersResult);
                     }
                     break;
