@@ -145,7 +145,7 @@ public class ManagementSystem {
                 case 5:
                     System.out.println("\n* ========== PLACE NEW ORDER ========== *");
 
-                    // NEW: Show Out-of-Stock List before displaying available products
+                    // Show Out-of-Stock List before displaying available products
                     System.out.println("\n--- ATTENTION: OUT-OF-STOCK WARNING ---");
                     productsobj.getOutOfStockProducts();
                     System.out.println("---------------------------------------");

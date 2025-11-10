@@ -392,7 +392,7 @@ public class ManagementSystemGUI {
         }
     }
 
-    // Minimal CustomerRecord Class
+    // Minimal Customer Class
     public static class CustomerRecord {
 
         private final int customerId;
@@ -454,13 +454,11 @@ public class ManagementSystemGUI {
                 return;
             }
 
-            // Check and Decrement Stock before creating the order
             if (productList.empty()) {
                 JOptionPane.showMessageDialog(frame, "Cannot place order with no products.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Temporary list copy to iterate without altering the original pointer state
             LinkedList<Product> productsToProcess = productList.deepCopy();
 
             productsToProcess.findFirst();
@@ -468,18 +466,14 @@ public class ManagementSystemGUI {
                 Product orderedProduct = productsToProcess.retrieve();
 
                 if (orderedProduct != null) {
-                    // Find the actual product object in the central Products list
                     Product realProduct = products.findProductById(orderedProduct.getProductId());
 
                     if (realProduct != null) {
                         if (realProduct.getStock() > 0) {
-                            // **CORE CHANGE: DECREMENT STOCK**
                             realProduct.setStock(realProduct.getStock() - 1);
                         } else {
                             JOptionPane.showMessageDialog(frame, "Stock for " + realProduct.getName() + " is zero. Order cancelled.", "Error", JOptionPane.ERROR_MESSAGE);
 
-                            // If stock is zero for ANY product, cancel the transaction. 
-                            // Note: A real-world system would remove the item, but here we cancel for simplicity.
                             return;
                         }
                     }
@@ -490,7 +484,6 @@ public class ManagementSystemGUI {
                 }
                 productsToProcess.findNext();
             }
-            // End of Stock Check and Decrement
 
             // Proceed with order creation only if stock checks passed
             Order newOrder = new Order(orderId, customerId, productList.deepCopy(), orderDate);
@@ -714,7 +707,7 @@ public class ManagementSystemGUI {
             return false;
         }
 
-        // Console Option 12: Top 3 Products (renamed for clarity)
+        // Console Option 12: Top 3 Products
         public String getTop3Products() {
             if (allProducts.empty()) {
                 return "No products available.";
@@ -1224,7 +1217,7 @@ public class ManagementSystemGUI {
         }
 
         // Buttons Setup
-        JPanel buttonPanel = new JPanel(new GridLayout(6, 3, 15, 15)); // Adjusted grid layout for new menu
+        JPanel buttonPanel = new JPanel(new GridLayout(6, 3, 15, 15)); 
         buttonPanel.setBackground(DARK_BLUE);
         buttonPanel.setMaximumSize(new Dimension(850, 260));
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1276,7 +1269,6 @@ public class ManagementSystemGUI {
         cards.add(createPlaceOrderPanel(), "placeOrder");
         cards.add(createAddReviewPanel(), "addReview");
 
-        // Panels that require dynamic generation before viewing (to fetch current lists)
         cards.add(createFillerPanel("Select the action from the menu.", "viewOrders"));
         cards.add(createFillerPanel("Select the action from the menu.", "cancelOrder"));
         cards.add(createFillerPanel("Select the action from the menu.", "updateProduct"));
@@ -1285,7 +1277,6 @@ public class ManagementSystemGUI {
         cards.add(createFillerPanel("Select the action from the menu.", "topProducts"));
         cards.add(createFillerPanel("Select the action from the menu.", "commonProducts"));
 
-        // Initially add the Edit Review panel (will be refreshed before viewing)
         cards.add(createEditReviewPanel(), "editReview");
         cards.add(createOrdersBetweenDatesPanel(), "ordersBetween");
 
@@ -1322,12 +1313,12 @@ public class ManagementSystemGUI {
         // Option 9: Add Review
         addReviewBtn.addActionListener(e -> cardLayout.show(cards, "addReview"));
 
-        // Option 10: Edit Review (Dynamic refresh fix applied here)
+        // Option 10: Edit Review 
         editReviewBtn.addActionListener(e -> {
-            // 1. Remove the old Edit Review card (by index, since it's the last added custom card 'editReview')
+            // 1. Remove the old Edit Review card 
             cards.remove(cards.getComponent(cards.getComponentCount() - 2));
 
-            // 2. Add a freshly generated panel (with the currently updated review list)
+            // 2. Add a freshly generated panel 
             cards.add(createEditReviewPanel(), "editReview");
 
             // 3. Show the new, current card
@@ -1361,7 +1352,7 @@ public class ManagementSystemGUI {
         JButton btn = new JButton(text);
         btn.setBackground(Color.WHITE);
         btn.setForeground(DARK_BLUE);
-        btn.setFont(new Font("Arial", Font.BOLD, 14)); // Smaller font for 15 options
+        btn.setFont(new Font("Arial", Font.BOLD, 14));
         return btn;
     }
 
@@ -1370,7 +1361,8 @@ public class ManagementSystemGUI {
         panel.setBackground(DARK_BLUE);
         JLabel instructions = new JLabel("<html><div style='text-align: center;'>"
                 + "Welcome to your E-commerce System!"
-                + "<br><br>Select an option from the menu above."
+                + "<br><br>Manage products, track orders, and monitor customers"
+                + "<br><br>Select an option"
                 + "</div></html>", SwingConstants.CENTER);
 
         instructions.setForeground(Color.WHITE);
@@ -1409,7 +1401,6 @@ public class ManagementSystemGUI {
     // 1. Add Product (Panel remains the same)
     private JPanel createAddProductPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        // ... (existing implementation)
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -1570,7 +1561,6 @@ public class ManagementSystemGUI {
     // 4. Add Customer (Panel remains the same)
     private JPanel createAddCustomerPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        // ... (existing implementation)
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.setBackground(DARK_BLUE);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -1637,10 +1627,9 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 5. Place New Order (Panel remains the same)
+    // 5. Place New Order 
     private JPanel createPlaceOrderPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        // ... (existing implementation)
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.setBackground(DARK_BLUE);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -1680,7 +1669,7 @@ public class ManagementSystemGUI {
         LinkedList<Product> selectedProducts = new LinkedList<>();
 
         JButton selectCustomerBtn = new JButton("Select Customer ID");
-        JButton selectProductBtn = new JButton("Select Product ID"); // Not used in this layout but kept for potential selector logic
+        JButton selectProductBtn = new JButton("Select Product ID"); 
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -1782,8 +1771,6 @@ public class ManagementSystemGUI {
             }
         });
 
-        // The original logic didn't use this but it's available:
-        // selectProductBtn.addActionListener(...)
         addProductToOrderBtn.addActionListener(e -> {
             try {
                 int pId = Integer.parseInt(productIdField.getText().trim());
@@ -1925,7 +1912,6 @@ public class ManagementSystemGUI {
     // 9. Add Review for Product (Panel remains the same)
     private JPanel createAddReviewPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        // ... (existing implementation)
         panel.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
         panel.setBackground(DARK_BLUE);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -2223,7 +2209,7 @@ public class ManagementSystemGUI {
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(filler, gbc);
 
-        // Logic: Selection Listener (populates fields when a review is chosen)
+        // Logic: Selection Listener 
         reviewSelector.addActionListener(e -> {
             String selectedItem = (String) reviewSelector.getSelectedItem();
             if (selectedItem == null || selectedItem.startsWith("---")) {
@@ -2257,7 +2243,7 @@ public class ManagementSystemGUI {
             }
         });
 
-        // Logic: Update Button Listener (applies edits)
+        // Logic: Update Button Listener 
         updateBtn.addActionListener(e -> {
             if (targetReview[0] == null) {
                 JOptionPane.showMessageDialog(frame, "Please select a review to update.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -2327,10 +2313,9 @@ public class ManagementSystemGUI {
         cardLayout.show(cards, resultCardName);
     }
 
-    // 13. Orders Between Two Dates (Panel remains the same)
+    // 13. Orders Between Two Dates 
     private JPanel createOrdersBetweenDatesPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        // ... (existing implementation)
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         panel.setBackground(DARK_BLUE);
         GridBagConstraints gbc = new GridBagConstraints();
