@@ -1,8 +1,9 @@
-
-import java.awt.*;
+﻿import java.awt.*;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -831,6 +832,75 @@ public class ManagementSystemGUI {
             }
             return sb.toString();
         }
+
+        public void getOutOfStockProducts() {
+            if (allProducts.empty()) {
+                System.out.println("No products available.");
+                return;
+            }
+
+            allProducts.findFirst();
+            boolean found = false;
+
+            // Safety check for an empty list after findFirst()
+            if (allProducts.retrieve() == null && allProducts.getHead() == null) {
+                System.out.println("No products available.");
+                return;
+            }
+
+            while (true) {
+                Product aProduct = allProducts.retrieve();
+
+                // Ensure aProduct is not null before checking its stock
+                if (aProduct != null && aProduct.getStock() == 0) {
+                    // Print the required information for the output box
+                    System.out.println("ID: " + aProduct.getProductId()
+                            + ", Name: " + aProduct.getName()
+                            + " is OUT (Stock: 0)");
+                    found = true;
+                }
+
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
+
+            if (!found) {
+                System.out.println("No products currently out of stock.");
+            }
+        }
+
+        public String getInStockProductsForOrder() {
+            if (allProducts.empty()) {
+                return "No products available.";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+
+            allProducts.findFirst();
+            while (true) {
+                Product p = allProducts.retrieve();
+
+                // Filter: Only include products with stock greater than 0
+                if (p != null && p.getStock() > 0) {
+                    sb.append(String.format("ID %d: %s | Price: $%.2f | Stock: %d\n",
+                            p.getProductId(), p.getName(), p.getPrice(), p.getStock()));
+                    count++;
+                }
+
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
+
+            if (count == 0) {
+                return "No products currently in stock.";
+            }
+            return sb.toString();
+        }
     }
 
     private class Orders {
@@ -1217,7 +1287,7 @@ public class ManagementSystemGUI {
         }
 
         // Buttons Setup
-        JPanel buttonPanel = new JPanel(new GridLayout(6, 3, 15, 15)); 
+        JPanel buttonPanel = new JPanel(new GridLayout(6, 3, 15, 15));
         buttonPanel.setBackground(DARK_BLUE);
         buttonPanel.setMaximumSize(new Dimension(850, 260));
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1640,11 +1710,15 @@ public class ManagementSystemGUI {
         Font fieldFont = new Font("Arial", Font.PLAIN, 14);
         Dimension fieldSize = new Dimension(150, 25);
 
-        // Fields that need direct text input
+        // Fields 
         JTextField customerIdField = new JTextField();
         JTextField orderIdField = new JTextField();
+        // Assuming LocalDate is imported
         JTextField dateField = new JTextField(LocalDate.now().toString());
         JTextField productIdField = new JTextField();
+
+        // Initialize the class field here
+        this.orderProductListArea = new JTextArea();
 
         customerIdField.setPreferredSize(fieldSize);
         orderIdField.setPreferredSize(fieldSize);
@@ -1656,7 +1730,7 @@ public class ManagementSystemGUI {
         dateField.setFont(fieldFont);
         productIdField.setFont(fieldFont);
 
-        orderProductListArea = new JTextArea();
+        // List Areas 
         orderProductListArea.setEditable(false);
         orderProductListArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         JScrollPane productScrollPane = new JScrollPane(orderProductListArea);
@@ -1669,8 +1743,9 @@ public class ManagementSystemGUI {
         LinkedList<Product> selectedProducts = new LinkedList<>();
 
         JButton selectCustomerBtn = new JButton("Select Customer ID");
-        JButton selectProductBtn = new JButton("Select Product ID"); 
+        JButton showOutOfStockBtn = new JButton("Show Out-of-Stock Products");
 
+        // --- ROW 0: Customer Info  ---
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 1;
@@ -1685,9 +1760,10 @@ public class ManagementSystemGUI {
         gbc.gridx = 2;
         panel.add(selectCustomerBtn, gbc);
 
-        // Row 1: Order ID
+        // --- Row 1 & 2: Order ID / Date ---
         gbc.gridx = 0;
         gbc.gridy = 1;
+        gbc.gridwidth = 1;
         JLabel orderLabel = new JLabel("Order ID:");
         orderLabel.setForeground(Color.WHITE);
         panel.add(orderLabel, gbc);
@@ -1695,9 +1771,9 @@ public class ManagementSystemGUI {
         gbc.gridwidth = 2;
         panel.add(orderIdField, gbc);
 
-        // Row 2: Date
         gbc.gridx = 0;
         gbc.gridy = 2;
+        gbc.gridwidth = 1;
         JLabel dateLabel = new JLabel("Date (YYYY-MM-DD):");
         dateLabel.setForeground(Color.WHITE);
         panel.add(dateLabel, gbc);
@@ -1705,7 +1781,7 @@ public class ManagementSystemGUI {
         gbc.gridwidth = 2;
         panel.add(dateField, gbc);
 
-        // Row 3: Add Product controls
+        // --- Row 3: Add Product controls (UNCHANGED) ---
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 1;
@@ -1723,63 +1799,130 @@ public class ManagementSystemGUI {
         gbc.gridwidth = 1;
         panel.add(addProductToOrderBtn, gbc);
 
-        // Row 4: List Viewers
+        // --- ROW 4: LIST HEADERS & NEW BUTTON (Adjusted Placement) ---
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 2;
         gbc.weightx = 1.0;
-        gbc.weighty = 0.5;
-        gbc.fill = GridBagConstraints.BOTH;
-        JLabel availableLabel = new JLabel("Available Products (ID | Name | Price | Stock):");
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        JLabel availableLabel = new JLabel("Available Products (In Stock Only):");
         availableLabel.setForeground(Color.WHITE);
         panel.add(availableLabel, gbc);
-        gbc.gridy = 5;
-        panel.add(productScrollPane, gbc);
 
-        gbc.gridx = 2;
+        // Selected Products Label (Column 3)
+        gbc.gridx = 3;
         gbc.gridy = 4;
         gbc.gridwidth = 1;
-        gbc.weightx = 0.5;
-        gbc.weighty = 0.5;
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel selectedLabel = new JLabel("Selected Products:");
         selectedLabel.setForeground(Color.WHITE);
         panel.add(selectedLabel, gbc);
+
+
+        // Row 5: List Viewers 
+        // In-stock list (Spans Columns 0, 1, 2)
+        gbc.gridx = 0;
         gbc.gridy = 5;
+        gbc.gridwidth = 3;
+        gbc.weighty = 0.5;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add(productScrollPane, gbc);
+
+        // Selected cart list (Column 3)
+        gbc.gridx = 3;
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.5;
+        gbc.fill = GridBagConstraints.BOTH;
         panel.add(selectedScrollPane, gbc);
 
-        JButton checkoutBtn = new JButton("Place Order (Checkout)");
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.gridwidth = 3;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(checkoutBtn, gbc);
+    // --- Row 6: Checkout Button + Out-of-Stock Button 
+    JButton checkoutBtn = new JButton("Place Order (Checkout)");
 
-        // Action listeners for selectors
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+    buttonPanel.setOpaque(false);
+    buttonPanel.add(checkoutBtn);
+    buttonPanel.add(showOutOfStockBtn);
+
+    gbc.gridx = 0;
+    gbc.gridy = 6;
+    gbc.gridwidth = 4;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.anchor = GridBagConstraints.CENTER;
+    panel.add(buttonPanel, gbc);
+
+        // --- Logic: Stock Button ---
+        showOutOfStockBtn.addActionListener(e -> {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            PrintStream old = System.out;
+
+            System.setOut(ps);
+            products.getOutOfStockProducts();
+            System.out.flush();
+            System.setOut(old);
+
+            String outOfStockData = baos.toString();
+
+            if (outOfStockData.contains("No products currently out of stock.") || outOfStockData.contains("No products available.")) {
+                JOptionPane.showMessageDialog(frame, "Great! There are no products currently out of stock.", "Inventory Status", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JTextArea displayArea = new JTextArea(outOfStockData);
+                displayArea.setEditable(false);
+                JScrollPane scrollPane = new JScrollPane(displayArea);
+                scrollPane.setPreferredSize(new Dimension(500, 200));
+
+                JOptionPane.showMessageDialog(frame, scrollPane, "🔴 Out-of-Stock Warning", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        // --- Logic: Select Customer Button ---
         selectCustomerBtn.addActionListener(e -> {
             JComboBox<String> customerSelector = createIdSelector(
                     customers.allCustomers,
                     c -> String.format("ID: %d - %s", c.getCustomerId(), c.getName())
             );
+            customerSelector.setSelectedIndex(-1);
+
             int option = JOptionPane.showConfirmDialog(frame, customerSelector, "Select Customer ID:", JOptionPane.OK_CANCEL_OPTION);
+
             if (option == JOptionPane.OK_OPTION && customerSelector.getSelectedItem() != null) {
                 int id = extractIdFromString((String) customerSelector.getSelectedItem());
                 if (id != -1) {
+                    //Set the extracted numeric ID back into the text field
                     customerIdField.setText(String.valueOf(id));
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid customer selection.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
+        // --- Logic: Add to Cart ---
         addProductToOrderBtn.addActionListener(e -> {
             try {
                 int pId = Integer.parseInt(productIdField.getText().trim());
                 Product p = products.findProductById(pId);
+
                 if (p != null) {
-                    selectedProducts.insert(p);
-                    String productEntry = String.format("ID %d: %s ($%.2f)\n", p.getProductId(), p.getName(), p.getPrice());
-                    selectedProductsArea.append(productEntry);
-                    productIdField.setText("");
+                    if (p.getStock() > 0) {
+                        // DECREMENT STOCK
+                        p.setStock(p.getStock() - 1);
+
+                        // Add product to the selected list
+                        selectedProducts.insert(p);
+                        String productEntry = String.format("ID %d: %s ($%.2f) - Stock Left: %d\n", p.getProductId(), p.getName(), p.getPrice(), p.getStock());
+                        selectedProductsArea.append(productEntry);
+                        productIdField.setText("");
+
+                        refreshProductListArea();
+
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Product is currently out of stock (Stock: 0).", "Stock Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
                     JOptionPane.showMessageDialog(frame, "Product ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -1788,6 +1931,7 @@ public class ManagementSystemGUI {
             }
         });
 
+        // --- Logic: Checkout ---
         checkoutBtn.addActionListener(e -> {
             try {
                 int cId = Integer.parseInt(customerIdField.getText().trim());
@@ -1809,11 +1953,15 @@ public class ManagementSystemGUI {
                 customers.placeOrder(cId, oId, selectedProducts.deepCopy(), date);
                 JOptionPane.showMessageDialog(frame, "Order placed successfully for Customer ID: " + cId);
 
+                // Reset fields
                 customerIdField.setText("");
                 orderIdField.setText("");
                 dateField.setText(LocalDate.now().toString());
                 selectedProducts.current = selectedProducts.head = null;
                 selectedProductsArea.setText("");
+
+                refreshProductListArea();
+
                 cardLayout.show(cards, "home");
 
             } catch (NumberFormatException ex) {
