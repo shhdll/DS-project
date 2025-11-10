@@ -135,7 +135,7 @@ public class Products {
             return;
         }
 
-        System.out.println(" ★Top 3 Products by Rating★ ");
+        System.out.println(" Top 3 Products by Rating ");
 
         allProducts.findFirst();
         int count = 0;

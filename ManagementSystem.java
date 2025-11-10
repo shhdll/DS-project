@@ -10,10 +10,10 @@ public class ManagementSystem {
         Scanner sc = new Scanner(System.in);
 
         // System data
-        Customers customers = new Customers();
-        Products products = new Products();
-        Orders orders = new Orders();
-        Reviews reviews = new Reviews();
+        Customers customersobj = new Customers();
+        Products productsobj = new Products();
+        Orders ordersobj = new Orders();
+        Reviews reviewsobj = new Reviews();
 
         // File paths
         String customersFile = "dataset/customers.csv";
@@ -22,10 +22,10 @@ public class ManagementSystem {
         String reviewsFile = "dataset/reviews.csv";
 
         // Load data from CSV files
-        loadCustomers(customersFile, customers);
-        loadProducts(productsFile, products);
-        loadOrders(ordersFile, customers, products);
-        loadReviews(reviewsFile, reviews, customers, products);
+        loadCustomers(customersFile, customersobj);
+        loadProducts(productsFile, productsobj);
+        loadOrders(ordersFile, customersobj, productsobj);
+        loadReviews(reviewsFile, reviewsobj, customersobj, productsobj);
 
         // Main menu
         boolean running = true;
@@ -71,7 +71,7 @@ public class ManagementSystem {
                     int stock = sc.nextInt();
                     sc.nextLine();
                     Product newProduct = new Product(pid, pname, price, stock);
-                    boolean added = products.addProduct(newProduct);
+                    boolean added = productsobj.addProduct(newProduct);
                     if (added) {
                         System.out.println(" Product '" + pname + "' added successfully!");
                     } else {
@@ -89,14 +89,14 @@ public class ManagementSystem {
                     String cname = sc.nextLine();
                     System.out.print("Email: ");
                     String cemail = sc.nextLine();
-                    customers.registerCustomer(cid, cname, cemail);
+                    customersobj.registerCustomer(cid, cname, cemail);
                     break;
 
                 case 3:
                     // Place New Order
                     System.out.println("\n* ========== PLACE NEW ORDER ========== *");
                     System.out.println("\n--- AVAILABLE PRODUCTS ---");
-                    products.displayAllProducts();
+                    productsobj.displayAllProducts();
 
                     System.out.print("Enter Customer ID: ");
                     int orderCustomerId = sc.nextInt();
@@ -120,7 +120,7 @@ public class ManagementSystem {
                         if (productId == -1) {
                             addingProducts = false;
                         } else {
-                            Product product = products.findProductById(productId);
+                            Product product = productsobj.findProductById(productId);
                             if (product != null) {
                                 selectedProducts.insert(product);
                                 System.out.println(
@@ -132,7 +132,7 @@ public class ManagementSystem {
                     }
 
                     if (!selectedProducts.empty()) {
-                        customers.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
+                        customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
                         System.out.println("Order placed successfully!");
                     } else {
                         System.out.println("No products added. Order cancelled.");
@@ -146,7 +146,7 @@ public class ManagementSystem {
                     System.out.print("Enter Customer ID to view orders: ");
                     int viewCid = sc.nextInt();
                     sc.nextLine();
-                    customers.viewOrderHistory(viewCid);
+                    customersobj.viewOrderHistory(viewCid);
                     break;
 
                 case 5:
@@ -165,7 +165,7 @@ public class ManagementSystem {
                     int reviewCustomerId = sc.nextInt();
                     sc.nextLine();
                     // ONLY CHECK: Product exists
-                    Product product = products.findProductById(reviewProductId);
+                    Product product = productsobj.findProductById(reviewProductId);
                     if (product == null) {
                         System.out.println("Product does not exist!");
                         break;
@@ -182,7 +182,7 @@ public class ManagementSystem {
                         // Create and add the review
                         Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId,
                                 newComment);
-                        products.addReview(reviewProductId, newReview);
+                        productsobj.addReview(reviewProductId, newReview);
 
                         System.out.println("\n Review added successfully!");
                         System.out.println("Product ID: " + reviewProductId + " | Rating: " + newRating + " stars");
@@ -199,16 +199,15 @@ public class ManagementSystem {
                     System.out.print("Enter Customer ID: ");
                     int reviewCid = sc.nextInt();
                     sc.nextLine();
-                    customers.extractCustomerReviews(reviewCid);
+                    customersobj.extractCustomerReviews(reviewCid);
                     break;
 
                 case 7:
                     // Show Top 3 Products by Average Rating
                     System.out.println("\n* ========== TOP 3 PRODUCTS BY RATING  ========== *");
-                    System.out.println("--- Show Top 3 Products by Average Rating ---");
-                    products.Top3Products();
-                    System.out.println("Function to sort and display top 3 products goes here.");
-                    break;
+                    productsobj.Top3Products() ;
+
+                    
 
                 case 8:
                     // Show orders within a specified date range
@@ -219,7 +218,7 @@ public class ManagementSystem {
                     String endDate = sc.nextLine();
 
                     System.out.println("\n--- Orders between " + startDate + " and " + endDate + " ---");
-                    String ordersResult = orders.showOrdersBetween(startDate, endDate);
+                    String ordersResult = ordersobj.showOrdersBetween(startDate, endDate);
 
                     if (ordersResult.isEmpty()) {
                         System.out.println("No orders found in this date range.");
@@ -238,7 +237,7 @@ public class ManagementSystem {
                     int c2 = sc.nextInt();
                     sc.nextLine();
 
-                    products.commonProducts(c1, c2);
+                    productsobj.commonProducts(c1, c2);
                     break;
 
                 case 10:
