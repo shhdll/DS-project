@@ -142,29 +142,63 @@ public class Products {
             return;
         }
 
-        System.out.println(" Top 3 Products by Rating ");
+        
+        Product first = null, second = null, third = null;
+        double firstRate = 0, secondRate = 0, thirdRate = 0;
 
         allProducts.findFirst();
-        int count = 0;
+        while (true) {
+            Product current = allProducts.retrieve();
+            double rate = calculateAverageRating(current);
 
-        while (count < 3) {
-            Product currentProduct = allProducts.retrieve();
-            double avrRating = calculateAverageRating(currentProduct);
-
-            if (avrRating > 0) {
-                System.out.println((count + 1) + "- " + currentProduct.getName());
-                System.out.println("   Rating: " + "- " + avrRating + " out of 5");
-                System.out.println("   Price: " + currentProduct.getPrice() + " SAR");
-                System.out.println();
-                count++;
+            if (rate > 0) {
+              
+                if (rate > firstRate) {
+                    third = second;
+                    thirdRate = secondRate;
+                    second = first;
+                    secondRate = firstRate;
+                    first = current;
+                    firstRate = rate;
+                } else if (rate > secondRate) {
+                    third = second;
+                    thirdRate = secondRate;
+                    second = current;
+                    secondRate = rate;
+                } else if (rate > thirdRate) {
+                    third = current;
+                    thirdRate = rate;
+                }
             }
-            if (allProducts.last()) {
+
+            if (allProducts.last())
                 break;
-            }
             allProducts.findNext();
         }
 
-        if (count == 0) {
+       
+        System.out.println(" Top 3 Products by Rating ");
+
+        if (first != null) {
+            System.out.println("1- " + first.getName());
+            System.out.println("   Rating: " + String.format("%.1f", firstRate) + " out of 5");
+            System.out.println("   Price: " + first.getPrice() + " SAR");
+            System.out.println();
+        }
+        if (second != null) {
+            System.out.println("2- " + second.getName());
+            System.out.println("   Rating: " + String.format("%.1f", secondRate) + " out of 5");
+            System.out.println("   Price: " + second.getPrice() + " SAR");
+            System.out.println();
+        }
+        if (third != null) {
+            System.out.println("3- " + third.getName());
+            System.out.println("   Rating: " + String.format("%.1f", thirdRate) + " out of 5");
+            System.out.println("   Price: " + third.getPrice() + " SAR");
+            System.out.println();
+        }
+
+        if (first == null) {
             System.out.println("No products with ratings available.");
         }
     }
