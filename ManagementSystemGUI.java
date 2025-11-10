@@ -623,10 +623,8 @@ public class ManagementSystemGUI {
                 return "No products available.";
             }
 
-            // FIX: DECLARE AS CONCRETE ArrayList<Product>
+            // 1. Extract products into a temporary, sortable list
             ArrayList<Product> sortableProducts = new ArrayList<>();
-
-            // 1. EXTRACT: Use custom LinkedList traversal
             allProducts.findFirst();
             while (true) {
                 Product p = allProducts.retrieve();
@@ -642,8 +640,24 @@ public class ManagementSystemGUI {
             if (sortableProducts.isEmpty()) {
                 return "No products available.";
             }
-            // 2. SORT
-            sortableProducts.sort(Comparator.comparingDouble(this::calculateAverageRating).reversed());
+
+            // 2. ROBUST SORT FIX: Use a lambda to normalize the highest rating.
+            // This forces all mathematically perfect 5.00 ratings to compare equally 
+            // and correctly above any 4.67 rating, overcoming float instability.
+            sortableProducts.sort(
+                    Comparator.comparingDouble((Product p) -> {
+                        double avg = calculateAverageRating(p);
+
+                        // Check if the rating is extremely close to 5.0 (allows for minute float errors)
+                        if (avg >= 4.99999999) {
+                            return 5.0; // Force it to be the perfect score for sorting
+                        }
+                        return avg;
+                    })
+                            .reversed() // Highest rating first
+                            // Secondary sort: Use Product ID to break ties amongst equal averages (like all 5.00s)
+                            .thenComparingInt(Product::getProductId)
+            );
 
             StringBuilder sb = new StringBuilder();
             sb.append("--- ★Top 3 Products by Rating★ ---\n");
@@ -653,11 +667,14 @@ public class ManagementSystemGUI {
                 double avgRating = calculateAverageRating(p);
 
                 if (avgRating > 0) {
+                    // Display the actual calculated average using two decimal places
                     sb.append(count + 1).append(". ").append(p.getName()).append("\n")
-                            .append("    Rating: ").append(String.format("%.1f", avgRating)).append(" out of 5\n")
-                            .append("    Price: $").append(String.format("%.2f", p.getPrice())).append("\n");
+                            .append("    Rating: ").append(String.format("%.2f", avgRating)).append(" out of 5\n")
+                            .append("    Price: $").append(String.format("%.2f", p.getPrice())).append("\n");
                     count++;
                 }
+
+                // Stop after displaying the top 3 products
                 if (count >= 3) {
                     break;
                 }
