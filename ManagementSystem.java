@@ -1,6 +1,9 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class ManagementSystem {
@@ -78,6 +81,7 @@ public class ManagementSystem {
                     sc.nextLine();
                     Product newProduct = new Product(pid, pname, price, stock);
                     boolean added = productsobj.addProduct(newProduct);
+                    appendProductToFile(productsFile,newProduct);//
                     if (added) {
                         System.out.println("Product '" + pname + "' added successfully!");
                     } else {
@@ -138,7 +142,10 @@ public class ManagementSystem {
                     String cname = sc.nextLine();
                     System.out.print("Email: ");
                     String cemail = sc.nextLine();
+                    Customer c = new Customer(cid, cname, cemail);// 
                     customersobj.registerCustomer(cid, cname, cemail);
+                    appendCustomerToFile(customersFile,c);//
+
                     break;
 
                 // -------------------- ORDER MANAGEMENT --------------------
@@ -199,6 +206,8 @@ public class ManagementSystem {
                     if (stockError) {
                         System.out.println("\nOrder cancelled due to stock errors.");
                     } else if (!selectedProducts.empty()) {
+                        Order r = new Order (orderCustomerId,newOrderId,selectedProducts,newOrderDate);//
+                        appendOrderToFile(ordersFile,r);//
                         customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
                         System.out.println("\nOrder placed successfully!");
                     } else {
@@ -268,6 +277,7 @@ public class ManagementSystem {
                         Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId, newComment);
                         productsobj.addReview(reviewProductId, newReview);
                         reviewsobj.addReview(newReview);
+                        appendReviewToFile(reviewsFile,newReview);//
                         System.out.println("Review added successfully!");
                     } catch (InvalidRatingException e) {
                         System.out.println("Error: " + e.getMessage());
@@ -485,6 +495,80 @@ public class ManagementSystem {
             product.addReview(r);
         } else {
             System.out.println("Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
+        }
+    }
+    // writing methodes !
+    private static void appendCustomerToFile(String filePath, Customer customer) {
+        try (FileWriter fw = new FileWriter(filePath, true); // true for append mode
+             PrintWriter pw = new PrintWriter(fw)) {
+            
+            // Format: customerId,name,email
+            String csvLine = String.format("%d,%s,%s", customer.getCustomerId(), customer.getName(), customer.getEmail());
+            pw.println(csvLine);
+            
+        } catch (IOException e) {
+            System.err.println("Error writing new customer to file: " + e.getMessage());
+        }
+    }
+
+    private static void appendProductToFile(String filePath, Product product) {
+        try (FileWriter fw = new FileWriter(filePath, true); 
+             PrintWriter pw = new PrintWriter(fw)) {
+            
+            // Format: productId,name,price,stock
+            String csvLine = String.format("%d,%s,%.2f,%d", product.getProductId(), product.getName(), product.getPrice(),product.getStock());
+            pw.println(csvLine);
+            
+        } catch (IOException e) {
+            System.err.println("Error writing new product to file: " + e.getMessage());
+        }
+    }
+
+    private static void appendOrderToFile(String filePath, Order order) {
+    // --- 1. Calculate Total Price and Format Product IDs ---
+    double calculatedTotalPrice = 0.0;
+    StringBuilder productIdsBuilder = new StringBuilder();
+    
+    LinkedList<Product> productList = order.getProductList();
+    Node<Product> tmp = productList.getHead(); 
+    boolean first = true;
+    
+    while (tmp != null) {
+        // Calculate Price
+        calculatedTotalPrice += tmp.data.getPrice();
+        
+        if (!first) {
+            productIdsBuilder.append(";");
+        }
+        productIdsBuilder.append(tmp.data.getProductId());
+        first = false;
+        tmp = tmp.next;
+    }
+    
+    String productIdsStr = productIdsBuilder.toString();
+
+    // --- 2. Write to File ---
+    try (FileWriter fw = new FileWriter(filePath, true); 
+         PrintWriter pw = new PrintWriter(fw)) {
+        
+        String csvLine = String.format("%d,%d,\"%s\",%.2f,%s,%s",  order.getOrderId(), order.getOcustomer(),productIdsStr,calculatedTotalPrice,order.getOrderDate(),order.getStatus());
+        pw.println(csvLine);
+        
+    } catch (IOException e) {
+        System.err.println("Error writing new order to file: " + e.getMessage());
+    }
+}
+    
+
+    private static void appendReviewToFile(String filePath, Review review) {
+        try (FileWriter fw = new FileWriter(filePath, true); 
+             PrintWriter pw = new PrintWriter(fw)) {
+            
+            String csvLine = String.format("%d,%d,%d,%d,%s", review.getReviewId(), review.getProductId(), review.getCustomerId(), review.getRating(),review.getComment());
+            pw.println(csvLine);
+            
+        } catch (IOException e) {
+            System.err.println("Error writing new review to file: " + e.getMessage());
         }
     }
 }
