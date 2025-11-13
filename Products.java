@@ -57,7 +57,7 @@ public class Products {
         return null;
     }
 
-    // search for a product by Name (i think it's not useful)?
+    // search for a product by Name 
     public Product findProductByName(String name) {
         if (allProducts.empty()) {
             return null;

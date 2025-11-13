@@ -18,7 +18,7 @@ public class Product {
     }
 
     // update product
-    public void updateProduct(String name, double price, int stock) { // should we allow updating productId?
+    public void updateProduct(String name, double price, int stock) { 
         if (name != null && name.length() > 0) // Prevents empty and whitespace "" only strings
         {
             this.name = name;
