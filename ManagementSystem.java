@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -277,7 +276,7 @@ public class ManagementSystem {
                         Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId, newComment);
                         productsobj.addReview(reviewProductId, newReview);
                         reviewsobj.addReview(newReview);
-                        appendReviewToFile(reviewsFile,newReview);//
+                        appendReviewToFile(reviewsFile,newReview);
                         System.out.println("Review added successfully!");
                     } catch (InvalidRatingException e) {
                         System.out.println("Error: " + e.getMessage());

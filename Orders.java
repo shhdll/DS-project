@@ -1,4 +1,3 @@
-
 public class Orders {
 
     private LinkedList<Order> orderList;
@@ -103,7 +102,7 @@ public class Orders {
     }
 
     public boolean cancelOrder(int orderId) {
-        Node<Order> current = orderList.getHead(); 
+        Node<Order> current = orderList.getHead();
         while (current != null) {
             Order order = current.getData();
             if (order.getOrderId() == orderId) {

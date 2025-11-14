@@ -1,4 +1,3 @@
-
 public class Reviews {
 
     private LinkedList<Review> reviewList;

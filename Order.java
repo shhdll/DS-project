@@ -4,8 +4,8 @@ public class Order {
     private LinkedList<Product> productList;
     private double totalPrice;
     private String orderDate;
-    private String status; // "Pending", "Shipped", "Delivered", "Canceled" //enum
-
+    private String status; // "Pending", "Shipped", "Delivered", "Canceled" 
+    
     public Order(int orderId, int customer, LinkedList<Product> productList, String orderDate) {
         this.orderId = orderId;
         this.customerID = customer;

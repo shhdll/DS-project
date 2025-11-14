@@ -1,4 +1,3 @@
-
 public class Products {
 
     private LinkedList<Product> allProducts = new LinkedList<>(); // list for all products

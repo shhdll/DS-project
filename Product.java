@@ -1,4 +1,5 @@
 public class Product {
+
     private int productId;
     private String name;
     private double price;
@@ -18,8 +19,8 @@ public class Product {
     }
 
     // update product
-    public void updateProduct(String name, double price, int stock) { 
-        if (name != null && name.length() > 0) // Prevents empty and whitespace "" only strings
+    public void updateProduct(String name, double price, int stock) {
+        if (name != null && name.length() > 0) // Prevents empty and whitespace 
         {
             this.name = name;
         }
