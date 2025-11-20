@@ -28,3 +28,7 @@ The system is **object-oriented** and uses **custom data structures**.
 - **Reviews:** Add and view product reviews  
 - Load initial data from CSV files
 - Write updated data back to CSV files
+
+## Phase II – Data Structures Upgrade
+
+In Phase II, the system is refactored to use **BSTs and AVL Trees** for Products, Customers, and Orders. This improves search and insertion efficiency and supports advanced queries like range searches, top-rated products, and sorted customer/order lists.
