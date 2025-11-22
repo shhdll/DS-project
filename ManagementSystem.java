@@ -332,7 +332,7 @@ public class ManagementSystem {
                         System.out.println(ordersResult);
                     }
                     break;
-
+/* 
                 case 14:
                     System.out.println("\n* ========== COMMON REVIEWED PRODUCTS ========== *");
                     System.out.print("Customer ID 1: ");
@@ -343,7 +343,7 @@ public class ManagementSystem {
                     sc.nextLine();
                     productsobj.commonProducts(c1, c2);
                     break;
-
+*/
                 case 15:
                     running = false;
                     System.out.println("\n* ========== THANK YOU ========== *");
