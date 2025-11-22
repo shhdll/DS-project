@@ -1,10 +1,18 @@
+enum Balance {
+    Left, Zero, Right
+}
+//we can move enum to a separate file 
 public class AVLNode<T> {
-    T data;
-    AVLNode<T> left, right;
-    int height;
+    public int key;
+    public T data;
+    public Balance bal;
+    public AVLNode<T> left, right;
 
-    public AVLNode(T data) {
+    public AVLNode(int key, T data) {
+        this.key = key;
         this.data = data;
-        this.height = 1;
+        bal = Balance.Zero;
+        left = right = null;
     }
 }
+

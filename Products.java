@@ -1,304 +1,362 @@
 public class Products {
 
-    private LinkedList<Product> allProducts = new LinkedList<>(); // list for all products
+    private AVLTree<Product> allProducts = new AVLTree<>();
 
     // add new product to allProducts list
     public boolean addProduct(Product p) {
-        if (findProductById(p.getProductId()) == null) {
-            allProducts.insert(p);
-            return true;
-        }
-        return false;
+        return allProducts.insert(p.getProductId(), p);
     }
 
     // remove product
     public boolean removeProduct(int productId) {
-        if (allProducts.empty()) {
-            return false; // nothing to remove
-        }
-
-        allProducts.findFirst();
-        while (true) {
-            Product p = allProducts.retrieve();
-            if (p.getProductId() == productId) {
-                allProducts.remove();
-                return true; // successfully removed
-            }
-
-            if (allProducts.last()) {
-                break; // reached end
-            }
-
-            allProducts.findNext();
-        }
-
-        return false; // not found
+        return allProducts.removeKey(productId);
     }
 
     // search for a product by ID
     public Product findProductById(int productId) {
-        if (allProducts.empty()) {
-            return null;
-        }
-
-        allProducts.findFirst();
-        while (true) {
-            Product current1 = allProducts.retrieve();
-            if (current1.getProductId() == productId) {
-                return current1;
-            }
-
-            if (allProducts.last()) {
-                break;
-            }
-            allProducts.findNext();
+        if (allProducts.findkey(productId)) {
+            return allProducts.retrieve();
         }
         return null;
     }
 
-    // search for a product by Name 
+    // new for phase 2
+    public void getProductsInPriceRange(double minPrice, double maxPrice) {
+        System.out.println("=== Products in Price Range [" + minPrice + " - " + maxPrice + "] ===");
+
+        if (allProducts.empty()) {
+            System.out.println("No products found in this price range.");
+            return;
+        }
+
+        boolean found = getProductsInPriceRangeRec(allProducts.root, minPrice, maxPrice);
+
+        if (!found) {
+            System.out.println("No products found in this price range.");
+        }
+    }
+
+    private boolean getProductsInPriceRangeRec(AVLNode<Product> node, double minPrice, double maxPrice) {
+        if (node == null) {
+            return false;
+        }
+
+        boolean found = false;
+
+        if (getProductsInPriceRangeRec(node.left, minPrice, maxPrice)) {
+            found = true;
+        }
+
+        Product product = node.data;
+        double price = product.getPrice();
+        if (price >= minPrice && price <= maxPrice) {
+            System.out.println("ID: " + product.getProductId()
+                    + ", Name: " + product.getName()
+                    + ", Price: " + product.getPrice()
+                    + ", Stock: " + product.getStock());
+            found = true;
+        }
+
+        if (getProductsInPriceRangeRec(node.right, minPrice, maxPrice)) {
+            found = true;
+        }
+
+        return found;
+    }
+
+    // search for a product by Name
     public Product findProductByName(String name) {
         if (allProducts.empty()) {
             return null;
         }
 
-        allProducts.findFirst();
-        while (true) {
-            Product current2 = allProducts.retrieve();
-            if (current2.getName().equals(name)) {
-                return current2;
-            }
+        // Use AVL tree traversal to search by name
+        return findProductByNameRec(allProducts.getRoot(), name);
+    }
 
-            if (allProducts.last()) {
-                break;
-            }
-            allProducts.findNext();
+    // Recursive helper method for name search using AVL tree traversal
+    private Product findProductByNameRec(AVLNode<Product> node, String name) {
+        if (node == null) {
+            return null;
         }
+
+        // Check left subtree
+        Product leftResult = findProductByNameRec(node.left, name);
+        if (leftResult != null) {
+            return leftResult;
+        }
+
+        // Check current node
+        Product currentProduct = node.data;
+        if (currentProduct.getName().equalsIgnoreCase(name)) {
+            return currentProduct;
+        }
+
+        // Check right subtree
+        Product rightResult = findProductByNameRec(node.right, name);
+        if (rightResult != null) {
+            return rightResult;
+        }
+
         return null;
     }
 
     // update product details
-    public void updateProducts(Product p, int id) {
-        Product target = findProductById(id); // check if product with same ID exists
-        if (target != null) {
-            target.updateProduct(p.getName(), p.getPrice(), p.getStock());
-            System.out.println("Product with ID " + id + " has been updated.");
-        } else // product with same ID does not exist
-        {
-            System.out.println("Product with ID " + id + " does not exist.");
+    public boolean updateProductDetails(int productId, String name, double price, int stock) {
+        Product product = findProductById(productId);
+        if (product != null) {
+            product.updateProduct(name, price, stock);
+            return true;
         }
+        return false;
     }
 
     // to Track out-of-stock products
+
     public void getOutOfStockProducts() {
-        LinkedList<Product> outOfStockProducts = new LinkedList<>();
+        System.out.println("=== Out-of-Stock Products ===");
+
         if (allProducts.empty()) {
+            System.out.println("No out-of-stock products.");
             return;
         }
 
-        allProducts.findFirst();
-        while (true) {
-            Product aProduct = allProducts.retrieve();
-            if (aProduct.getStock() == 0) {
-                outOfStockProducts.insert(aProduct);
-            }
-            if (allProducts.last()) {
-                break;
-            }
-            allProducts.findNext();
-        }
-        if (outOfStockProducts.empty()) {
+        boolean found = getOutOfStockProductsRec(allProducts.root);
+
+        if (!found) {
             System.out.println("No out-of-stock products.");
-        } else {
-            System.out.println("Out-of-stock products:");
-            outOfStockProducts.findFirst();
-            while (true) {
-                Product outProduct = outOfStockProducts.retrieve();
-                outProduct.displayProductDetails();
-                if (outOfStockProducts.last()) {
-                    break;
-                }
-                outOfStockProducts.findNext();
-            }
         }
+    }
+
+    private boolean getOutOfStockProductsRec(AVLNode<Product> node) {
+        if (node == null) {
+            return false;
+        }
+
+        boolean found = false;
+
+        if (getOutOfStockProductsRec(node.left)) {
+            found = true;
+        }
+
+        Product p = node.data;
+        if (p.getStock() == 0) {
+            p.displayProductDetails();
+            found = true;
+        }
+
+        if (getOutOfStockProductsRec(node.right)) {
+            found = true;
+        }
+
+        return found;
     }
 
     // add review to a product
     public void addReview(int productId, Review r) {
-        Product p = findProductById(productId); // find the product to which the review belongs
+        Product p = findProductById(productId);
         if (p != null) {
             p.addReview(r);
-            System.out.println("Review added for Product ID " + productId);
+            System.out.println("Review added.");
         } else {
-            System.out.println("Product with ID " + productId + " not found. Review not added.");
+            System.out.println("Review not added.");
         }
     }
 
     // top 3 products by average rating
     public void Top3Products() {
+        System.out.println("=== Top 3 Highest Rated Products ===");
+
         if (allProducts.empty()) {
             System.out.println("No products available.");
             return;
         }
 
-        
-        Product first = null, second = null, third = null;
-        double firstRate = 0, secondRate = 0, thirdRate = 0;
+        Product[] topProducts = new Product[3];
+        double[] topRatings = new double[3];
 
-        allProducts.findFirst();
-        while (true) {
-            Product current = allProducts.retrieve();
-            double rate = calculateAverageRating(current);
+        findTopRatedProductsRec(allProducts.root, topProducts, topRatings);
 
-            if (rate > 0) {
-              
-                if (rate > firstRate) {
-                    third = second;
-                    thirdRate = secondRate;
-                    second = first;
-                    secondRate = firstRate;
-                    first = current;
-                    firstRate = rate;
-                } else if (rate > secondRate) {
-                    third = second;
-                    thirdRate = secondRate;
-                    second = current;
-                    secondRate = rate;
-                } else if (rate > thirdRate) {
-                    third = current;
-                    thirdRate = rate;
-                }
+        boolean found = false;
+        for (int i = 0; i < 3; i++) {
+            if (topProducts[i] != null) {
+                System.out.println((i + 1) + ". " + topProducts[i].getName() +
+                        " - Rating: " + String.format("%.1f", topRatings[i]) + "/5" +
+                        " - Price: " + topProducts[i].getPrice() + " SAR" +
+                        " - Reviews: " + getReviewCount(topProducts[i]));
+                found = true;
             }
-
-            if (allProducts.last())
-                break;
-            allProducts.findNext();
         }
 
-       
-        System.out.println(" Top 3 Products by Rating ");
-
-        if (first != null) {
-            System.out.println("1- " + first.getName());
-            System.out.println("   Rating: " + String.format("%.1f", firstRate) + " out of 5");
-            System.out.println("   Price: " + first.getPrice() + " SAR");
-            System.out.println();
-        }
-        if (second != null) {
-            System.out.println("2- " + second.getName());
-            System.out.println("   Rating: " + String.format("%.1f", secondRate) + " out of 5");
-            System.out.println("   Price: " + second.getPrice() + " SAR");
-            System.out.println();
-        }
-        if (third != null) {
-            System.out.println("3- " + third.getName());
-            System.out.println("   Rating: " + String.format("%.1f", thirdRate) + " out of 5");
-            System.out.println("   Price: " + third.getPrice() + " SAR");
-            System.out.println();
-        }
-
-        if (first == null) {
-            System.out.println("No products with ratings available.");
+        if (!found) {
+            System.out.println("No products with reviews available.");
         }
     }
 
-    private double calculateAverageRating(Product p) {
-        LinkedList<Review> allreviews = p.getReviews();
-        if (allreviews.empty()) {
+    private void findTopRatedProductsRec(AVLNode<Product> node, Product[] topProducts, double[] topRatings) {
+        if (node == null)
+            return;
+
+        // In-order traversal
+        findTopRatedProductsRec(node.left, topProducts, topRatings);
+
+        Product product = node.data;
+        double rating = calculateAverageRating(product);
+
+        if (rating > 0) {
+            for (int i = 0; i < 3; i++) {
+                if (topProducts[i] == null || rating > topRatings[i]) {
+                    for (int j = 2; j > i; j--) {
+                        topProducts[j] = topProducts[j - 1];
+                        topRatings[j] = topRatings[j - 1];
+                    }
+                    topProducts[i] = product;
+                    topRatings[i] = rating;
+                    break;
+                }
+            }
+        }
+
+        findTopRatedProductsRec(node.right, topProducts, topRatings);
+    }
+
+    private int getReviewCount(Product product) {
+        LinkedList<Review> reviews = product.getReviews();
+        if (reviews.empty()) {
             return 0;
+        }
+
+        int count = 0;
+        reviews.findFirst();
+        while (!reviews.last()) {
+            count++;
+            reviews.findNext();
+        }
+        count++;
+        return count;
+    }
+
+    private double calculateAverageRating(Product product) {
+        LinkedList<Review> reviews = product.getReviews();
+        if (reviews.empty()) {
+            return 0.0;
         }
 
         double sum = 0;
         int count = 0;
-        allreviews.findFirst();
-        while (true) {
-            Review currentReview = allreviews.retrieve();
-            sum += currentReview.getRating();
+
+        reviews.findFirst();
+        while (!reviews.last()) {
+            Review review = reviews.retrieve();
+            sum += review.getRating();
             count++;
-            if (allreviews.last()) {
-                break;
-            }
-            allreviews.findNext();
+            reviews.findNext();
         }
+
+        // Process last review
+        Review lastReview = reviews.retrieve();
+        sum += lastReview.getRating();
+        count++;
+
         return sum / count;
     }
 
-    // to display a list of common that have been reviewed by two customers
-    public void commonProducts(int cust1, int cust2) {
-        System.out.println("Common products for customers " + cust1 + " & " + cust2 + ":");
+    // to display all customers who reviewed a specific product
+    public void commonProducts(int productId) {
+        System.out.println("=== Customers Who Reviewed Product ID: " + productId + " ===");
 
-        int count = 0;
-
-        allProducts.findFirst();
-        while (true) {
-            Product p = allProducts.retrieve();
-            double rating = calculateAverageRating(p);
-
-            if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p, cust2)) {
-                count++;
-                System.out.println(count + ". " + p.getName() + " - " + rating + " out of 5 ");
-            }
-
-            if (allProducts.last()) {
-                break;
-            }
-            allProducts.findNext();
-        }
-
-        if (count == 0) {
-            System.out.println("No common products with rating above 4.0 found between these customers.");
-        }
-    }
-
-    private boolean hasCustomerReviewed(Product p, int customerId) {
-        LinkedList<Review> reviews = p.getReviews();
-        if (reviews.empty()) {
-            return false;
-        }
-
-        reviews.findFirst();
-        while (true) {
-            if (reviews.retrieve().getCustomerId() == customerId) {
-                return true;
-            }
-            if (reviews.last()) {
-                break;
-            }
-            reviews.findNext();
-        }
-        return false;
-    }
-
-    public void displayAllProducts() {
-        if (allProducts.empty()) {
-            System.out.println("No products available.");
+        Product product = findProductById(productId);
+        if (product == null) {
+            System.out.println("Product not found.");
             return;
         }
 
-        System.out.println("=== All Products with Details ===");
-        allProducts.findFirst();
-        int count = 0;
-
-        while (true) {
-            Product p = allProducts.retrieve();
-            count++;
-            System.out.println(count + ". " + p.getName());
-            System.out.println("   ID: " + p.getProductId() + ", Price: " + p.getPrice() + " SAR"
-                    + ", Stock: " + p.getStock());
-
-            // Show average rating if available
-            double avgRating = calculateAverageRating(p);
-            if (avgRating > 0) {
-                System.out.println("   Average Rating: " + String.format("%.1f", avgRating));
-            }
-            System.out.println();
-
-            if (allProducts.last()) {
-                break;
-            }
-            allProducts.findNext();
+        LinkedList<Review> reviews = product.getReviews();
+        if (reviews.empty()) {
+            System.out.println("No reviews for this product.");
+            return;
         }
 
-        System.out.println("Total: " + count + " Products");
+        // Display all customers who reviewed this product
+        System.out.println("Product: " + product.getName());
+        System.out.println("Customers who reviewed this product:");
+
+        int count = 0;
+        reviews.findFirst();
+        while (!reviews.last()) {
+            Review review = reviews.retrieve();
+            count++;
+            System.out.println(count + ". Customer ID: " + review.getCustomerId() +
+                    ", Rating: " + review.getRating() + "/5" +
+                    ", Comment: " + review.getComment());
+            reviews.findNext();
+        }
+
+        Review lastReview = reviews.retrieve();
+        count++;
+        System.out.println(count + ". Customer ID: " + lastReview.getCustomerId() +
+                ", Rating: " + lastReview.getRating() + "/5" +
+                ", Comment: " + lastReview.getComment());
+
+        System.out.println("===Total: " + count + " reviews ===");
     }
+
+    /*
+     * // to display a list of common that have been reviewed by two customers
+     * public void commonProducts(int cust1, int cust2) {
+     * System.out.println("Common products for customers " + cust1 + " & " + cust2 +
+     * ":");
+     * 
+     * int count = 0;
+     * 
+     * allProducts.findFirst();
+     * while (true) {
+     * Product p = allProducts.retrieve();
+     * double rating = calculateAverageRating(p);
+     * 
+     * if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p,
+     * cust2)) {
+     * count++;
+     * System.out.println(count + ". " + p.getName() + " - " + rating +
+     * " out of 5 ");
+     * }
+     * 
+     * if (allProducts.last()) {
+     * break;
+     * }
+     * allProducts.findNext();
+     * }
+     * 
+     * if (count == 0) {
+     * System.out.
+     * println("No common products with rating above 4.0 found between these customers."
+     * );
+     * }
+     * }
+     * 
+     * private boolean hasCustomerReviewed(Product p, int customerId) {
+     * LinkedList<Review> reviews = p.getReviews();
+     * if (reviews.empty()) {
+     * return false;
+     * }
+     * 
+     * reviews.findFirst();
+     * while (true) {
+     * if (reviews.retrieve().getCustomerId() == customerId) {
+     * return true;
+     * }
+     * if (reviews.last()) {
+     * break;
+     * }
+     * reviews.findNext();
+     * }
+     * return false;
+     * }
+     */
+    // to display all products, Support sorted traversals
+    public void displayAllProducts() {
+        System.out.println("=== All Products (Sorted by ID) ===");
+        allProducts.traverse(Order.InOrder);
+    }
+
 }

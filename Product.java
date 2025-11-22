@@ -1,4 +1,4 @@
-public class Product {
+public class Product{
 
     private int productId;
     private String name;
@@ -67,6 +67,10 @@ public class Product {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public int compareTo(Product other) {
+        return this.productId - other.productId;
     }
 
     public void displayProductDetails() {

@@ -1,115 +1,272 @@
-public class AVLTree<T extends Comparable<T>> {
+enum Order {
+    PreOrder,
+    InOrder,
+    PostOrder
+}
+//we can move enum to a separate file 
+public class AVLTree<T> {
 
-    private AVLNode<T> root;
+    AVLNode<T> root, current;
 
-    public AVLNode<T> getRoot() {
-        return root;
+    public AVLTree() {
+        root = current = null;
     }
 
-    // height helper
-    private int height(AVLNode<T> node) {
-        return node == null ? 0 : node.height;
+    public boolean empty() {
+        return root == null;
     }
 
-    // balance factor
-    private int getBalance(AVLNode<T> node) {
-        return node == null ? 0 : height(node.left) - height(node.right);
+    public boolean full() {
+        return false;
     }
 
-    // right rotation
-    private AVLNode<T> rotateRight(AVLNode<T> y) {
-        AVLNode<T> x = y.left;
-        AVLNode<T> temp = x.right;
-
-        x.right = y;
-        y.left = temp;
-
-        y.height = Math.max(height(y.left), height(y.right)) + 1;
-        x.height = Math.max(height(x.left), height(x.right)) + 1;
-
-        return x;
+    public T retrieve() {
+        return current.data;
     }
 
-    // left rotation
-    private AVLNode<T> rotateLeft(AVLNode<T> x) {
-        AVLNode<T> y = x.right;
-        AVLNode<T> temp = y.left;
-
-        y.left = x;
-        x.right = temp;
-
-        x.height = Math.max(height(x.left), height(x.right)) + 1;
-        y.height = Math.max(height(y.left), height(y.right)) + 1;
-
-        return y;
+    public boolean findkey(int tkey) {
+        AVLNode<T> p = root, q = root;
+        if (empty())
+            return false;
+        while (p != null) {
+            q = p;
+            if (p.key == tkey) {
+                current = p;
+                return true;
+            } else if (tkey < p.key)
+                p = p.left;
+            else
+                p = p.right;
+        }
+        current = q;
+        return false;
     }
 
-    // insert public method
-    public void insert(T value) {
-        root = insertRec(root, value);
+    public boolean insert(int k, T val) {
+        AVLNode<T> p, q = current;
+        if (findkey(k)) {
+            current = q;
+            return false; // key already in the tree
+        }
+        p = new AVLNode<T>(k, val);
+        if (empty()) {
+            root = current = p;
+            root = rebalanceTree(root);
+            return true;
+        } else {
+            if (k < current.key)
+                current.left = p;
+            else
+                current.right = p;
+            current = p;
+            root = rebalanceTree(root);
+            return true;
+        }
     }
 
-    // insert recursive
-    private AVLNode<T> insertRec(AVLNode<T> node, T value) {
+    public boolean removeKey(int k) {
+        AVLNode<T> p = root;
+        AVLNode<T> q = null;
+        boolean found = false;
 
-        if (node == null)
-            return new AVLNode<>(value);
+        while ((p != null) && (!found)) {
+            int res = k - p.key;
+            if (res < 0) {
+                q = p;
+                p = p.left;
+            } else if (res > 0) {
+                q = p;
+                p = p.right;
+            } else
+                found = true;
+        }
 
-        int cmp = value.compareTo(node.data);
+        if (found) {
+            if ((p.left != null) && (p.right != null)) {
+                AVLNode<T> min = p.right;
+                q = p;
+                while (min.left != null) {
+                    q = min;
+                    min = min.left;
+                }
+                p.key = min.key;
+                p.data = min.data;
+                deleteNode(min, q);
+            } else
+                deleteNode(p, q);
 
-        if (cmp < 0)
-            node.left = insertRec(node.left, value);
-        else if (cmp > 0)
-            node.right = insertRec(node.right, value);
+            current = root;
+            root = rebalanceTree(root);
+            return true;
+        }
+        return false;
+    }
+
+    private void deleteNode(AVLNode<T> n, AVLNode<T> parent) {
+        AVLNode<T> child;
+        if (n.left != null)
+            child = n.left;
         else
-            return node; // duplicates ignored
-
-        node.height = 1 + Math.max(height(node.left), height(node.right));
-        int balance = getBalance(node);
-
-        // Left Left
-        if (balance > 1 && value.compareTo(node.left.data) < 0)
-            return rotateRight(node);
-
-        // Right Right
-        if (balance < -1 && value.compareTo(node.right.data) > 0)
-            return rotateLeft(node);
-
-        // Left Right
-        if (balance > 1 && value.compareTo(node.left.data) > 0) {
-            node.left = rotateLeft(node.left);
-            return rotateRight(node);
+            child = n.right;
+        if (parent == null) {
+            root = child;
+        } else {
+            if (n.key - parent.key < 0)
+                parent.left = child;
+            else
+                parent.right = child;
         }
+    }
 
-        // Right Left
-        if (balance < -1 && value.compareTo(node.right.data) < 0) {
-            node.right = rotateRight(node.right);
-            return rotateLeft(node);
+    public boolean update(int tkey, T val) {
+        if (empty())
+            return false;
+        if (findkey(tkey)) {
+            current.data = val;
+            return true;
         }
+        return false;
+    }
 
+    public void traverse(Order ord) {
+        traverseSub(root, ord);
+    }
+
+    private void traverseSub(AVLNode<T> node, Order ord) {
+        if (node == null)
+            return;
+
+        switch (ord) {
+            case PreOrder:
+                visit(node);
+                traverseSub(node.left, ord);
+                traverseSub(node.right, ord);
+                break;
+            case InOrder:
+                traverseSub(node.left, ord);
+                visit(node);
+                traverseSub(node.right, ord);
+                break;
+            case PostOrder:
+                traverseSub(node.left, ord);
+                traverseSub(node.right, ord);
+                visit(node);
+                break;
+        }
+    }
+
+    private void visit(AVLNode<T> node) {
+        current = node;
+    }
+
+    public void deleteSub() {
+        if (current == null || root == null)
+            return;
+        int key = current.key;
+        root = deleteSubRec(root, key);
+        current = root;
+        root = rebalanceTree(root);
+    }
+
+    private AVLNode<T> deleteSubRec(AVLNode<T> node, int key) {
+        if (node == null)
+            return null;
+        if (key < node.key) {
+            node.left = deleteSubRec(node.left, key);
+            return node;
+        } else if (key > node.key) {
+            node.right = deleteSubRec(node.right, key);
+            return node;
+        } else {
+            deleteSubtreeNodes(node);
+            return null;
+        }
+    }
+
+    private void deleteSubtreeNodes(AVLNode<T> node) {
+        if (node == null)
+            return;
+        deleteSubtreeNodes(node.left);
+        deleteSubtreeNodes(node.right);
+        node.left = node.right = null;
+    }
+
+    private AVLNode<T> rebalanceTree(AVLNode<T> node) {
+        if (node == null)
+            return null;
+        node.left = rebalanceTree(node.left);
+        node.right = rebalanceTree(node.right);
+        return rebalance(node);
+    }
+
+    private int height(AVLNode<T> node) {
+        if (node == null)
+            return 0;
+        int hl = height(node.left);
+        int hr = height(node.right);
+        int diff = hr - hl;
+        if (diff < 0)
+            node.bal = Balance.Left;
+        else if (diff > 0)
+            node.bal = Balance.Right;
+        else
+            node.bal = Balance.Zero;
+        return 1 + (hl > hr ? hl : hr);
+    }
+
+    private int balanceFactor(AVLNode<T> node) {
+        if (node == null)
+            return 0;
+        int hl = height(node.left);
+        int hr = height(node.right);
+        return hr - hl;
+    }
+
+    private AVLNode<T> rebalance(AVLNode<T> node) {
+        if (node == null)
+            return null;
+
+        int bf = balanceFactor(node);
+
+        if (bf < -1) { 
+            if (balanceFactor(node.left) <= 0) {
+                node = rotateRight(node); // LL
+            } else {
+                node.left = rotateLeft(node.left); // LR
+                node = rotateRight(node);
+            }
+        } else if (bf > 1) { 
+            if (balanceFactor(node.right) >= 0) {
+                node = rotateLeft(node); // RR
+            } else {
+                node.right = rotateRight(node.right); // RL
+                node = rotateLeft(node);
+            }
+        } else {
+            height(node); 
+        }
         return node;
     }
 
-    // search
-    public T search(T key) {
-        AVLNode<T> curr = root;
-        while (curr != null) {
-            int cmp = key.compareTo(curr.data);
-            if (cmp == 0) return curr.data;
-            curr = (cmp < 0) ? curr.left : curr.right;
-        }
-        return null;
+    private AVLNode<T> rotateLeft(AVLNode<T> p) {
+        AVLNode<T> q = p.right;
+        p.right = q.left;
+        q.left = p;
+        height(p);
+        height(q);
+        return q;
     }
 
-    // inorder traversal
-    public void printInOrder() {
-        printInOrderRec(root);
+    private AVLNode<T> rotateRight(AVLNode<T> p) {
+        AVLNode<T> q = p.left;
+        p.left = q.right;
+        q.right = p;
+        height(p);
+        height(q);
+        return q;
     }
-
-    private void printInOrderRec(AVLNode<T> node) {
-        if (node == null) return;
-        printInOrderRec(node.left);
-        System.out.println(node.data);
-        printInOrderRec(node.right);
-    }
+   
+    public AVLNode<T> getRoot() {
+    return root;
+}
 }
