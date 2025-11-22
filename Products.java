@@ -163,7 +163,7 @@ public class Products {
         }
     }
 
-    // top 3 products by average rating
+    // top 3 Highest Rated Products
     public void Top3Products() {
         System.out.println("=== Top 3 Highest Rated Products ===");
 
@@ -353,10 +353,33 @@ public class Products {
      * return false;
      * }
      */
-    // to display all products, Support sorted traversals
+
+    // to display all products
     public void displayAllProducts() {
         System.out.println("=== All Products (Sorted by ID) ===");
-        allProducts.traverse(Order.InOrder);
+
+        if (allProducts.empty()) {
+            System.out.println("No products available.");
+            return;
+        }
+
+        displayAllProductsRec(allProducts.getRoot());
+    }
+
+    private void displayAllProductsRec(AVLNode<Product> node) {
+        if (node == null) {
+            return;
+        }
+
+        displayAllProductsRec(node.left);
+
+        Product product = node.data;
+        System.out.println("ID: " + product.getProductId() +
+                ", Name: " + product.getName() +
+                ", Price: " + product.getPrice() + " SAR" +
+                ", Stock: " + product.getStock());
+
+        displayAllProductsRec(node.right);
     }
 
 }
