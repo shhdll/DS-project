@@ -1,12 +1,12 @@
 public class Order {
     private int orderId;
     private int customerID;
-    private LinkedList<Product> productList;
+    private AVLTree<Product> productList; // update the list to a tree
     private double totalPrice;
     private String orderDate;
     private String status; // "Pending", "Shipped", "Delivered", "Canceled" 
     
-    public Order(int orderId, int customer, LinkedList<Product> productList, String orderDate) {
+    public Order(int orderId, int customer, AVLTree<Product> productList, String orderDate) {
         this.orderId = orderId;
         this.customerID = customer;
         this.productList = productList;
@@ -16,7 +16,7 @@ public class Order {
 
     public void addProduct(Product P) {
 
-        productList.insert(P);
+        productList.insert(P.getProductId(),P);
     }
 
     // getters and setters
@@ -40,7 +40,7 @@ public class Order {
         return status;
     }
 
-    public LinkedList<Product> getProductList() {
+    public AVLTree<Product> getProductList() {
         return productList;
     }
 
@@ -48,7 +48,7 @@ public class Order {
         status = s;
     }
 
-    public void displayOrderDetails() {
+   /* public void displayOrderDetails() {
         System.out.println("=== Order Details ===");
         System.out.println("Order ID: " + orderId);
         System.out.println("Customer ID: " + customerID);
@@ -60,7 +60,7 @@ public class Order {
         if (productList.empty()) {
             System.out.println("No products");
         } else {
-            Node<Product> tmp = productList.getHead();
+            Node<Product> tmp = productList.getHead(); // must edit this
             int count = 1;
             while (tmp != null) {
                 Product p = tmp.data;
@@ -70,5 +70,5 @@ public class Order {
             }
         }
         System.out.println("----------------------");
-    }
+    } */
 }

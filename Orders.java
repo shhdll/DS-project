@@ -1,17 +1,16 @@
 public class Orders {
 
-    private LinkedList<Order> orderList;
+    private AVLTree<Order> orderList = new AVLTree<>();
 
-    public Orders() {
-        orderList = new LinkedList<Order>();
-
-    }
+    //public Orders() {
+    //    orderList = new LinkedList<Order>();
+    //}
 
     // Operations
     // 1 create order
-    public void createOrder(int orderId, int customerID, LinkedList<Product> productList, String orderDate) {
+    public void createOrder(int orderId, int customerID, AVLTree<Product> productList, String orderDate) {
         Order o = new Order(orderId, customerID, productList, orderDate);
-        orderList.insert(o);
+        orderList.insert(o.getOrderId(),o);
     }
 
     // 2 Cancel order
@@ -97,24 +96,23 @@ public class Orders {
         System.out.println("Total: " + (count - 1) + " orders");
     }
 
-    public LinkedList<Order> getOrderList() {
+    public AVLTree<Order> getOrderList() {
         return orderList;
     }
 
     public boolean cancelOrder(int orderId) {
-        Node<Order> current = orderList.getHead();
-        while (current != null) {
-            Order order = current.getData();
-            if (order.getOrderId() == orderId) {
-                if (order.getStatus().equalsIgnoreCase("Cancelled")) {
-                    return false; // already cancelled
-                }
-                order.setStatus("Cancelled");
-                return true;
+        if (orderList.findkey(orderId)) {
+       
+            Order order = (Order) orderList.current.data; 
+
+            if (order.getStatus().equalsIgnoreCase("Cancelled")) {
+                return false; // Already cancelled
             }
-            current = current.getNext();
+            order.setStatus("Cancelled");
+    
+            return true;
         }
-        return false; // not found
+        return false;
     }
 
     public boolean updateOrderStatus(int orderId, String newStatus) {
