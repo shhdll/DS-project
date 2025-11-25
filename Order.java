@@ -47,8 +47,8 @@ public class Order {
     public void setStatus(String s) {
         status = s;
     }
-
-   /* public void displayOrderDetails() {
+    
+    public void displayOrderDetails() {
         System.out.println("=== Order Details ===");
         System.out.println("Order ID: " + orderId);
         System.out.println("Customer ID: " + customerID);
@@ -57,18 +57,30 @@ public class Order {
         System.out.println("Total Price: " + totalPrice);
 
         System.out.println("Products in this order:");
+
         if (productList.empty()) {
             System.out.println("No products");
         } else {
-            Node<Product> tmp = productList.getHead(); // must edit this
-            int count = 1;
-            while (tmp != null) {
-                Product p = tmp.data;
-                System.out.println("  " + count + ". " + p.getName() + " - " + p.getPrice() + " SAR");
-                tmp = tmp.next;
-                count++;
-            }
+            displayProductsInOrder(productList.getRoot(), 1);
         }
+
         System.out.println("----------------------");
-    } */
+    }
+
+
+
+   private int displayProductsInOrder(AVLNode<Product> node, int count) {
+    if (node == null) return count;
+
+    count = displayProductsInOrder(node.left, count);
+
+    Product p = node.data;
+    System.out.println("  " + count + ". " + p.getName() + " - " + p.getPrice() + " SAR");
+    count++;
+
+    count = displayProductsInOrder(node.right, count);
+
+    return count;
+}
+
 }

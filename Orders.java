@@ -44,58 +44,60 @@ public class Orders {
 
     // 3 Search order by ID
     public Order searchOrder(int ID) {
-        Node<Order> tmp = orderList.getHead();
-        while (tmp != null) {
-            Order order = tmp.data;
-            if (order.getOrderId() == ID) {
-                return order;
-            }
-            tmp = tmp.next;
+        if (orderList.findkey(ID)) {
+            return orderList.retrieve();   // return order
         }
-        System.out.println("Order Not found");
+        System.out.println("Order not found.");
         return null;
     }
 
     // All Orders between two dates
     public String showOrdersBetween(String start, String end) {
-        Node<Order> current = orderList.getHead();
         StringBuilder sb = new StringBuilder();
-
-        while (current != null) {
-            Order o = current.data;
-            String date = o.getOrderDate();
-
-            if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
-                sb.append("Order ID: ").append(o.getOrderId())
-                        .append(", Date: ").append(o.getOrderDate())
-                        .append("\n");
-            }
-
-            current = current.next;
-        }
-
+        showBetweenRec(orderList.getRoot(), start, end, sb);
         return sb.toString();
     }
 
+    private void showBetweenRec(AVLNode<Order> node, String start, String end, StringBuilder sb) {
+        if (node == null) return;
+
+        showBetweenRec(node.left, start, end, sb);
+
+        Order o = node.data;
+        if (o.getOrderDate().compareTo(start) >= 0 &&
+            o.getOrderDate().compareTo(end) <= 0) {
+
+            sb.append("Order ID: ").append(o.getOrderId())
+              .append(", Date: ").append(o.getOrderDate())
+              .append("\n");
+        }
+
+        showBetweenRec(node.right, start, end, sb);
+    }
+
     public void displayAllOrders() {
-        System.out.println("=== All Orders ===");
         if (orderList.empty()) {
             System.out.println("No orders found.");
             return;
         }
 
-        Node<Order> tmp = orderList.getHead();
-        int count = 1;
-        while (tmp != null) {
-            Order order = tmp.data;
-            System.out.println(count + ". Order ID: " + order.getOrderId() + ", Customer: " + order.getOcustomer()
-                    + ", Date: " + order.getOrderDate() + ", Status: " + order.getStatus());
-            tmp = tmp.next;
-            count++;
-        }
-        System.out.println("Total: " + (count - 1) + " orders");
+        System.out.println("=== All Orders ===");
+        printOrdersInOrder(orderList.getRoot());
     }
 
+    private void printOrdersInOrder(AVLNode<Order> node) {
+        if (node == null) return;
+
+        printOrdersInOrder(node.left);
+
+        Order o = node.data;
+        System.out.println("Order ID: " + o.getOrderId() +
+                ", Customer: " + o.getOcustomer() +
+                ", Date: " + o.getOrderDate() +
+                ", Status: " + o.getStatus());
+
+        printOrdersInOrder(node.right);
+    }
     public AVLTree<Order> getOrderList() {
         return orderList;
     }
