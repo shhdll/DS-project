@@ -1,3 +1,4 @@
+
 public class Products {
 
     private AVLTree<Product> allProducts = new AVLTree<>();
@@ -112,7 +113,6 @@ public class Products {
     }
 
     // to Track out-of-stock products
-
     public void getOutOfStockProducts() {
         System.out.println("=== Out-of-Stock Products ===");
 
@@ -180,10 +180,10 @@ public class Products {
         boolean found = false;
         for (int i = 0; i < 3; i++) {
             if (topProducts[i] != null) {
-                System.out.println((i + 1) + ". " + topProducts[i].getName() +
-                        " - Rating: " + String.format("%.1f", topRatings[i]) + "/5" +
-                        " - Price: " + topProducts[i].getPrice() + " SAR" +
-                        " - Reviews: " + getReviewCount(topProducts[i]));
+                System.out.println((i + 1) + ". " + topProducts[i].getName()
+                        + " - Rating: " + String.format("%.1f", topRatings[i]) + "/5"
+                        + " - Price: " + topProducts[i].getPrice() + " SAR"
+                        + " - Reviews: " + getReviewCount(topProducts[i]));
                 found = true;
             }
         }
@@ -194,8 +194,9 @@ public class Products {
     }
 
     private void findTopRatedProductsRec(AVLNode<Product> node, Product[] topProducts, double[] topRatings) {
-        if (node == null)
+        if (node == null) {
             return;
+        }
 
         // In-order traversal
         findTopRatedProductsRec(node.left, topProducts, topRatings);
@@ -262,7 +263,7 @@ public class Products {
     }
 
     // to display all customers who reviewed a specific product
-    public void commonProducts(int productId) {
+    public void commonProducts(int productId, Customers customers) {
         System.out.println("=== Customers Who Reviewed Product ID: " + productId + " ===");
 
         Product product = findProductById(productId);
@@ -278,81 +279,85 @@ public class Products {
         }
 
         // Display all customers who reviewed this product
-        System.out.println("Product: " + product.getName());
-        System.out.println("Customers who reviewed this product:");
+        System.out.println("Product: " + product.getName() + " (Avg Rating: " + String.format("%.1f", calculateAverageRating(product)) + "/5)");
+        System.out.println("Reviewers:");
 
         int count = 0;
         reviews.findFirst();
-        while (!reviews.last()) {
+        while (true) {
             Review review = reviews.retrieve();
+            // lookup for customer details per review
+            Customer reviewer = customers.findCustomerById(review.getCustomerId());
+            String reviewerName = (reviewer != null) ? reviewer.getName() : "Unknown Customer";
+
             count++;
-            System.out.println(count + ". Customer ID: " + review.getCustomerId() +
-                    ", Rating: " + review.getRating() + "/5" +
-                    ", Comment: " + review.getComment());
+            System.out.println(count + ". Customer: " + reviewerName
+                    + " (ID: " + review.getCustomerId()
+                    + "), Rating: " + review.getRating() + "/5"
+                    + ", Comment: " + review.getComment());
+
+            if (reviews.last()) {
+                break;
+            }
             reviews.findNext();
         }
 
-        Review lastReview = reviews.retrieve();
-        count++;
-        System.out.println(count + ". Customer ID: " + lastReview.getCustomerId() +
-                ", Rating: " + lastReview.getRating() + "/5" +
-                ", Comment: " + lastReview.getComment());
-
-        System.out.println("===Total: " + count + " reviews ===");
+        System.out.println("=== Total: " + count + " reviews ===");
     }
 
-    /*
-     * // to display a list of common that have been reviewed by two customers
-     * public void commonProducts(int cust1, int cust2) {
-     * System.out.println("Common products for customers " + cust1 + " & " + cust2 +
-     * ":");
-     * 
-     * int count = 0;
-     * 
-     * allProducts.findFirst();
-     * while (true) {
-     * Product p = allProducts.retrieve();
-     * double rating = calculateAverageRating(p);
-     * 
-     * if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p,
-     * cust2)) {
-     * count++;
-     * System.out.println(count + ". " + p.getName() + " - " + rating +
-     * " out of 5 ");
-     * }
-     * 
-     * if (allProducts.last()) {
-     * break;
-     * }
-     * allProducts.findNext();
-     * }
-     * 
-     * if (count == 0) {
-     * System.out.
-     * println("No common products with rating above 4.0 found between these customers."
-     * );
-     * }
-     * }
-     * 
-     * private boolean hasCustomerReviewed(Product p, int customerId) {
-     * LinkedList<Review> reviews = p.getReviews();
-     * if (reviews.empty()) {
-     * return false;
-     * }
-     * 
-     * reviews.findFirst();
-     * while (true) {
-     * if (reviews.retrieve().getCustomerId() == customerId) {
-     * return true;
-     * }
-     * if (reviews.last()) {
-     * break;
-     * }
-     * reviews.findNext();
-     * }
-     * return false;
-     * }
-     */
+    public void commonProducts(int cust1, int cust2) {
+        System.out.println("=== Common products for customers " + cust1 + " & " + cust2 + " (Rated > 4.0) ===");
+
+        int count = 0;
+        // recursive traversal to check every product 
+        count = commonProductsRec(allProducts.getRoot(), cust1, cust2, count);
+
+        if (count == 0) {
+            System.out.println("No common products with rating above 4.0 found between these customers.");
+        }
+    }
+
+    private int commonProductsRec(AVLNode<Product> node, int cust1, int cust2, int count) {
+        if (node == null) {
+            return count;
+        }
+
+        // Traverse left
+        count = commonProductsRec(node.left, cust1, cust2, count);
+
+        Product p = node.data;
+        double rating = calculateAverageRating(p);
+
+        if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p, cust2)) {
+            count++;
+            System.out.println(count + ". " + p.getName()
+                    + " (ID: " + p.getProductId()
+                    + ") - Rating: " + String.format("%.1f", rating) + " out of 5");
+        }
+        // Traverse right
+        count = commonProductsRec(node.right, cust1, cust2, count);
+
+        return count;
+    }
+
+    private boolean hasCustomerReviewed(Product p, int customerId) {
+        LinkedList<Review> reviews = p.getReviews();
+        if (reviews.empty()) {
+            return false;
+        }
+
+        reviews.findFirst();
+        while (true) {
+            if (reviews.retrieve().getCustomerId() == customerId) {
+                return true;
+            }
+            if (reviews.last()) {
+                break;
+            }
+            reviews.findNext();
+        }
+        return false;
+    }
 
     // to display all products
     public void displayAllProducts() {
@@ -374,10 +379,10 @@ public class Products {
         displayAllProductsRec(node.left);
 
         Product product = node.data;
-        System.out.println("ID: " + product.getProductId() +
-                ", Name: " + product.getName() +
-                ", Price: " + product.getPrice() + " SAR" +
-                ", Stock: " + product.getStock());
+        System.out.println("ID: " + product.getProductId()
+                + ", Name: " + product.getName()
+                + ", Price: " + product.getPrice() + " SAR"
+                + ", Stock: " + product.getStock());
 
         displayAllProductsRec(node.right);
     }

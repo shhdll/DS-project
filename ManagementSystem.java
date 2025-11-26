@@ -45,10 +45,15 @@ public class ManagementSystem {
             System.out.println("9. Add Review for Product");
             System.out.println("10. Edit Review");
             System.out.println("11. Extract Reviews from Specific Customer");
-            System.out.println("12. Show Top 3 Products by Average Rating");
+            System.out.println("12. Common Reviewed Products Between Two Customers");
+            //Advanced queries
             System.out.println("13. View All Orders Between Two Dates");
-            System.out.println("14. Common Reviewed Products Between Two Customers");
-            System.out.println("15. Exit");
+            System.out.println("14. List All Products Within a Price Range");
+            System.out.println("15. Show Top 3 Products by Average Rating");
+            System.out.println("16. List All Customers Sorted Alphabetically");
+            System.out.println("17. Show All Reviews for a Product (by ID)");
+
+            System.out.println("18. Exit");
             System.out.println("--------------------------------");
             System.out.print("Select an option: ");
 
@@ -80,7 +85,7 @@ public class ManagementSystem {
                     sc.nextLine();
                     Product newProduct = new Product(pid, pname, price, stock);
                     boolean added = productsobj.addProduct(newProduct);
-                    appendProductToFile(productsFile,newProduct);//
+                    appendProductToFile(productsFile, newProduct);
                     if (added) {
                         System.out.println("Product '" + pname + "' added successfully!");
                     } else {
@@ -141,9 +146,9 @@ public class ManagementSystem {
                     String cname = sc.nextLine();
                     System.out.print("Email: ");
                     String cemail = sc.nextLine();
-                    Customer c = new Customer(cid, cname, cemail);// 
+                    Customer c = new Customer(cid, cname, cemail);
                     customersobj.registerCustomer(cid, cname, cemail);
-                    appendCustomerToFile(customersFile,c);//
+                    appendCustomerToFile(customersFile, c);
 
                     break;
 
@@ -190,7 +195,7 @@ public class ManagementSystem {
                                     realProduct.setStock(realProduct.getStock() - 1);
 
                                     // 2. Add product (instance) to the order list
-                                    selectedProducts.insert(realProduct.getProductId(),realProduct);
+                                    selectedProducts.insert(realProduct.getProductId(), realProduct);
                                     System.out.println("Added: " + realProduct.getName() + " (Stock remaining: " + realProduct.getStock() + ")");
                                 } else {
                                     System.out.println("ERROR: Stock for " + realProduct.getName() + " is zero. Cannot add.");
@@ -205,8 +210,8 @@ public class ManagementSystem {
                     if (stockError) {
                         System.out.println("\nOrder cancelled due to stock errors.");
                     } else if (!selectedProducts.empty()) {
-                        Order r = new Order (orderCustomerId,newOrderId,selectedProducts,newOrderDate);//
-                        appendOrderToFile(ordersFile,r);//
+                        Order r = new Order(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
+                        appendOrderToFile(ordersFile, r);
                         customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
                         System.out.println("\nOrder placed successfully!");
                     } else {
@@ -276,7 +281,7 @@ public class ManagementSystem {
                         Review newReview = new Review(newReviewId, reviewProductId, newRating, reviewCustomerId, newComment);
                         productsobj.addReview(reviewProductId, newReview);
                         reviewsobj.addReview(newReview);
-                        appendReviewToFile(reviewsFile,newReview);
+                        appendReviewToFile(reviewsFile, newReview);
                         System.out.println("Review added successfully!");
                     } catch (InvalidRatingException e) {
                         System.out.println("Error: " + e.getMessage());
@@ -314,9 +319,10 @@ public class ManagementSystem {
                     customersobj.extractCustomerReviews(reviewCid);
                     break;
 
+                // ADVANCED QUERIES 
                 case 12:
-                    System.out.println("\n* ========== TOP 3 PRODUCTS ========== *");
-                    productsobj.Top3Products();
+                    System.out.println("\n* ========== FIND COMMON REVIEWED PRODUCTS ========== *");
+                    showCommonReviewedProductsBetweenCustomers(productsobj, sc);
                     break;
 
                 case 13:
@@ -332,19 +338,25 @@ public class ManagementSystem {
                         System.out.println(ordersResult);
                     }
                     break;
-/* 
-                case 14:
-                    System.out.println("\n* ========== COMMON REVIEWED PRODUCTS ========== *");
-                    System.out.print("Customer ID 1: ");
-                    int c1 = sc.nextInt();
-                    sc.nextLine();
-                    System.out.print("Customer ID 2: ");
-                    int c2 = sc.nextInt();
-                    sc.nextLine();
-                    productsobj.commonProducts(c1, c2);
+
+                case 14: 
+                    showProductsInPriceRange(productsobj, sc);
                     break;
-*/
-                case 15:
+
+                case 15: 
+                    System.out.println("\n* ========== TOP 3 PRODUCTS ========== *");
+                    productsobj.Top3Products();
+                    break;
+
+                case 16: 
+                    customersobj.listCustomersAlphabetically();
+                    break;
+
+                case 17: 
+                    showReviewsForProduct(productsobj, customersobj, sc);
+                    break;
+
+                case 18: 
                     running = false;
                     System.out.println("\n* ========== THANK YOU ========== *");
                     break;
@@ -355,6 +367,36 @@ public class ManagementSystem {
         }
 
         sc.close();
+    }
+
+    private static void showCommonReviewedProductsBetweenCustomers(Products products, Scanner sc) {
+        System.out.print("Enter Customer ID 1: ");
+        int c1 = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter Customer ID 2: ");
+        int c2 = sc.nextInt();
+        sc.nextLine();
+
+        products.commonProducts(c1, c2);
+    }
+
+    private static void showProductsInPriceRange(Products products, Scanner sc) {
+        System.out.println("\n* ========== PRODUCTS IN PRICE RANGE ========== *");
+        System.out.print("Enter minimum price: ");
+        double minPrice = sc.nextDouble();
+        sc.nextLine();
+        System.out.print("Enter maximum price: ");
+        double maxPrice = sc.nextDouble();
+        sc.nextLine();
+        products.getProductsInPriceRange(minPrice, maxPrice);
+    }
+
+    private static void showReviewsForProduct(Products products, Customers customers, Scanner sc) {
+        System.out.println("\n* ========== CUSTOMERS WHO REVIEWED PRODUCT ========== *");
+        System.out.print("Enter Product ID to view reviews: ");
+        int reviewedPid = sc.nextInt();
+        sc.nextLine();
+        products.commonProducts(reviewedPid, customers);
     }
 
     // ================= CSV LOADING METHODS =================
@@ -425,17 +467,17 @@ public class ManagementSystem {
                     int productId = Integer.parseInt(pidStr.trim());
                     Product p = products.findProductById(productId);
                     if (p != null) {
-                        orderProducts.insert(p.getProductId(),p);
+                        orderProducts.insert(p.getProductId(), p);
                     }
                 }
 
                 Order newOrder = new Order(orderId, customerId, orderProducts, orderDate);
                 newOrder.setStatus(status);
-                orders.getOrderList().insert(newOrder.getOrderId(),newOrder);
+                orders.getOrderList().insert(newOrder.getOrderId(), newOrder);
 
                 Customer customer = customers.findCustomerById(customerId);
                 if (customer != null) {
-                    customer.getOrders().insert(newOrder.getOrderId(),newOrder);
+                    customer.getOrders().insert(newOrder.getOrderId(), newOrder);
                 } else {
                     System.out.println("Customer ID " + customerId + " not found for order " + orderId);
                 }
@@ -496,87 +538,88 @@ public class ManagementSystem {
             System.out.println("Product ID " + r.getProductId() + " not found for review " + r.getReviewId());
         }
     }
+
     // writing methodes !
     private static void appendCustomerToFile(String filePath, Customer customer) {
         try (FileWriter fw = new FileWriter(filePath, true); // true for append mode
-             PrintWriter pw = new PrintWriter(fw)) {
-            
+                 PrintWriter pw = new PrintWriter(fw)) {
+
             // Format: customerId,name,email
             String csvLine = String.format("%d,%s,%s", customer.getCustomerId(), customer.getName(), customer.getEmail());
             pw.println(csvLine);
-            
+
         } catch (IOException e) {
             System.err.println("Error writing new customer to file: " + e.getMessage());
         }
     }
 
     private static void appendProductToFile(String filePath, Product product) {
-        try (FileWriter fw = new FileWriter(filePath, true); 
-             PrintWriter pw = new PrintWriter(fw)) {
-            
+        try (FileWriter fw = new FileWriter(filePath, true); PrintWriter pw = new PrintWriter(fw)) {
+
             // Format: productId,name,price,stock
-            String csvLine = String.format("%d,%s,%.2f,%d", product.getProductId(), product.getName(), product.getPrice(),product.getStock());
+            String csvLine = String.format("%d,%s,%.2f,%d", product.getProductId(), product.getName(), product.getPrice(), product.getStock());
             pw.println(csvLine);
-            
+
         } catch (IOException e) {
             System.err.println("Error writing new product to file: " + e.getMessage());
         }
     }
+
     private static void appendOrderToFile(String filePath, Order order) {
-    StringBuilder productIdsBuilder = new StringBuilder();
-    double[] totalPrice = {0};  // small trick to allow modification inside recursion
-    boolean[] first = {true};
+        StringBuilder productIdsBuilder = new StringBuilder();
+        double[] totalPrice = {0}; // small trick to allow modification inside recursion
+        boolean[] first = {true};
 
-    inorderProcess(order.getProductList().getRoot(), productIdsBuilder, totalPrice, first);
+        inorderProcess(order.getProductList().getRoot(), productIdsBuilder, totalPrice, first);
 
-    String productIdsStr = productIdsBuilder.toString();
+        String productIdsStr = productIdsBuilder.toString();
 
-    try (FileWriter fw = new FileWriter(filePath, true);
-         PrintWriter pw = new PrintWriter(fw)) {
+        try (FileWriter fw = new FileWriter(filePath, true); PrintWriter pw = new PrintWriter(fw)) {
 
-        String csvLine = String.format(
-                "%d,%d,\"%s\",%.2f,%s,%s",
-                order.getOrderId(),
-                order.getOcustomer(),
-                productIdsStr,
-                totalPrice[0],
-                order.getOrderDate(),
-                order.getStatus()
-        );
+            String csvLine = String.format(
+                    "%d,%d,\"%s\",%.2f,%s,%s",
+                    order.getOrderId(),
+                    order.getOcustomer(),
+                    productIdsStr,
+                    totalPrice[0],
+                    order.getOrderDate(),
+                    order.getStatus()
+            );
 
-        pw.println(csvLine);
+            pw.println(csvLine);
 
-    } catch (IOException e) {
-        System.err.println("Error writing new order to file: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error writing new order to file: " + e.getMessage());
+        }
     }
-}
-private static void inorderProcess(AVLNode<Product> root,StringBuilder ids,double[] totalPrice,boolean[] first) {
 
-    if (root == null) return;
+    private static void inorderProcess(AVLNode<Product> root, StringBuilder ids, double[] totalPrice, boolean[] first) {
 
-    inorderProcess(root.left, ids, totalPrice, first);
+        if (root == null) {
+            return;
+        }
 
-    // Visit root (Product)
-    Product p = root.data;
-    totalPrice[0] += p.getPrice();
+        inorderProcess(root.left, ids, totalPrice, first);
 
-    if (!first[0]) {
-        ids.append(";");
+        // Visit root (Product)
+        Product p = root.data;
+        totalPrice[0] += p.getPrice();
+
+        if (!first[0]) {
+            ids.append(";");
+        }
+        ids.append(p.getProductId());
+        first[0] = false;
+
+        inorderProcess(root.right, ids, totalPrice, first);
     }
-    ids.append(p.getProductId());
-    first[0] = false;
-
-    inorderProcess(root.right, ids, totalPrice, first);
-}
-
 
     private static void appendReviewToFile(String filePath, Review review) {
-        try (FileWriter fw = new FileWriter(filePath, true); 
-             PrintWriter pw = new PrintWriter(fw)) {
-            
-            String csvLine = String.format("%d,%d,%d,%d,%s", review.getReviewId(), review.getProductId(), review.getCustomerId(), review.getRating(),review.getComment());
+        try (FileWriter fw = new FileWriter(filePath, true); PrintWriter pw = new PrintWriter(fw)) {
+
+            String csvLine = String.format("%d,%d,%d,%d,%s", review.getReviewId(), review.getProductId(), review.getCustomerId(), review.getRating(), review.getComment());
             pw.println(csvLine);
-            
+
         } catch (IOException e) {
             System.err.println("Error writing new review to file: " + e.getMessage());
         }
