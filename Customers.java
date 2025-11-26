@@ -1,9 +1,9 @@
 public class Customers {
 
-    private LinkedList<Customer> allCustomers;
+    private AVLTree<Customer> allCustomers;
 
     public Customers() {
-        allCustomers = new LinkedList<Customer>();
+        allCustomers = new AVLTree<>();
     }
 
     // Operations:
@@ -15,7 +15,7 @@ public class Customers {
         }
 
         Customer newCustomer = new Customer(customerId, name, email);
-        allCustomers.insert(newCustomer);
+        allCustomers.insert(customerId,newCustomer);
         // System.out.println("Customer registered successfully");
     }
 
@@ -28,65 +28,64 @@ public class Customers {
         }
 
         Order newOrder = new Order(orderId, customerId, productList, orderDate);
-        customer.getOrders().insert(newOrder);
+        customer.getOrders().insert(newOrder.getOrderId(),newOrder);
         System.out.println("Order placed successfully");
     }
 
     // 3 View order history
     public void viewOrderHistory(int customerId) {
-        // a: customer is not found
         Customer customer = findCustomerById(customerId);
         if (customer == null) {
             System.out.println("Customer not found :(");
             return;
         }
-        // b: customer has no orders
-        LinkedList<Order> orders = customer.getOrders();
-        if (orders.empty()) {
+
+        AVLTree<Order> orders = customer.getOrders();
+        if (orders.getRoot() == null) {
             System.out.println("Customer has no orders");
             return;
         }
-        // display history
+
         System.out.println("Order history for customer ID " + customerId + ":");
-        Node<Order> tmp = orders.getHead();
-        while (tmp != null) {
-            Order o = tmp.data;
-            System.out.println(
-                    "  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
-            tmp = tmp.next;
-        }
+        inOrderPrintOrders(orders.getRoot());
     }
 
-    // Find customer by ID
-    public Customer findCustomerById(int customerId) {
-        if (allCustomers.empty())
-            return null;
-
-        Node<Customer> temp = allCustomers.getHead();
-        while (temp != null) {
-            if (temp.data.getCustomerId() == customerId)
-                return temp.data;
-            temp = temp.next;
-        }
-        return null;
+    private void inOrderPrintOrders(AVLNode<Order> node) {
+        if (node == null) return;
+        inOrderPrintOrders(node.left);
+        Order o = node.data;
+        System.out.println(
+                "  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
+        inOrderPrintOrders(node.right);
     }
 
-    public String toString() {
-        String result = "";
+     public Customer findCustomerById(int customerId) {
+    return findCustomerRec(allCustomers.getRoot(), customerId);
+}
 
-        if (allCustomers.empty()) {
-            return "No customers found.";
-        }
+private Customer findCustomerRec(AVLNode<Customer> node, int customerId) {
+    if (node == null) return null; // not found
 
-        allCustomers.findFirst();
-        while (true) {
-            result += allCustomers.retrieve().toString() + "\n";
-            if (allCustomers.last())
-                break;
-            allCustomers.findNext();
-        }
+    if (node.data.getCustomerId() == customerId) {
+        return node.data;
+    } else if (customerId < node.data.getCustomerId()) {
+        return findCustomerRec(node.left, customerId);
+    } else {
+        return findCustomerRec(node.right, customerId);
+    }
+}
 
-        return result;
+
+      public String toString() {
+        StringBuilder sb = new StringBuilder();
+        inOrderPrintCustomers(allCustomers.getRoot(), sb);
+        return sb.length() == 0 ? "No customers found." : sb.toString();
+    }
+    private void inOrderPrintCustomers(AVLNode<Customer> node, StringBuilder sb) {
+        if (node == null) return;
+        inOrderPrintCustomers(node.left, sb);
+        sb.append(node.data.toString()).append("\n");
+        inOrderPrintCustomers(node.right, sb);
     }
 
     // 4 Extract customer reviews
@@ -98,13 +97,16 @@ public class Customers {
         }
 
         System.out.println(" Reviews by Customer " + customerId);
-        Node<Review> tmp = customer.getReviews().getHead();
-        while (tmp != null) {  //most efficient linear data structure possible.
-            Review r = tmp.data;
-            System.out.println("- Product " + r.getProductId() + ": " +
-                    r.getRating() + " - " + r.getComment());
-            tmp = tmp.next;
-        }
+        AVLTree<Review> reviews = customer.getReviews();
+        inOrderPrintReviews(reviews.getRoot());
+    }
+
+    private void inOrderPrintReviews(AVLNode<Review> node) {
+        if (node == null) return;
+        inOrderPrintReviews(node.left);
+        Review r = node.data;
+        System.out.println("- Product " + r.getProductId() + ": " + r.getRating() + " - " + r.getComment());
+        inOrderPrintReviews(node.right);
     }
 
 }

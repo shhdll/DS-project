@@ -435,7 +435,7 @@ public class ManagementSystem {
 
                 Customer customer = customers.findCustomerById(customerId);
                 if (customer != null) {
-                    customer.getOrders().insert(newOrder);
+                    customer.getOrders().insert(newOrder.getOrderId(),newOrder);
                 } else {
                     System.out.println("Customer ID " + customerId + " not found for order " + orderId);
                 }
