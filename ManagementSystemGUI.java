@@ -19,35 +19,22 @@ public class ManagementSystemGUI {
 
     // 1. Custom Data Structure 
     public interface List<T> {
-
         public boolean empty();
-
         public boolean last();
-
         public boolean full();
-
         public void findFirst();
-
         public void findNext();
-
         public T retrieve();
-
         public void update(T val);
-
         public void insert(T val);
-
         public void remove();
-
         public boolean find(T key);
-
         public int size();
     }
 
     public static class Node<T> {
-
         public T data;
         public Node<T> next;
-
         public Node(T data) {
             this.data = data;
             this.next = null;
@@ -55,7 +42,6 @@ public class ManagementSystemGUI {
     }
 
     public static class LinkedList<T> implements List<T> {
-
         private Node<T> head;
         private Node<T> current;
 
@@ -174,17 +160,14 @@ public class ManagementSystemGUI {
         public LinkedList<T> deepCopy() {
             LinkedList<T> new_list = new LinkedList<>();
 
-            // 1. Handle the empty case
             if (this.empty()) {
                 return new_list;
             }
 
-            // 2. Traverse the original list
             this.findFirst();
             while (true) {
                 T data = this.retrieve();
                 if (data != null) {
-                    // 3. Insert the item into the new list
                     new_list.insert(data);
                 }
 
@@ -194,7 +177,6 @@ public class ManagementSystemGUI {
                 this.findNext();
             }
 
-            // 4. Reset the current pointer for the new list to the beginning
             new_list.findFirst();
             return new_list;
         }
@@ -202,14 +184,12 @@ public class ManagementSystemGUI {
 
     // Custom Exceptions
     public static class InvalidRatingException extends Exception {
-
         public InvalidRatingException(String message) {
             super(message);
         }
     }
 
     public static class InvalidStatusException extends Exception {
-
         public InvalidStatusException(String message) {
             super(message);
         }
@@ -474,7 +454,6 @@ public class ManagementSystemGUI {
                             realProduct.setStock(realProduct.getStock() - 1);
                         } else {
                             JOptionPane.showMessageDialog(frame, "Stock for " + realProduct.getName() + " is zero. Order cancelled.", "Error", JOptionPane.ERROR_MESSAGE);
-
                             return;
                         }
                     }
@@ -571,6 +550,46 @@ public class ManagementSystemGUI {
                 }
                 customerReviews.findNext();
             }
+            return sb.toString();
+        }
+
+        // --- PHASE II QUERY 16: List All Customers Sorted Alphabetically (O(n^2)) ---
+        public String listCustomersAlphabetically() {
+            if (allCustomers.empty()) {
+                return "No customers registered.";
+            }
+            
+            // 1. Extract to ArrayList for sorting (O(n))
+            ArrayList<CustomerRecord> sortableList = new ArrayList<>();
+            allCustomers.findFirst();
+            while (true) {
+                CustomerRecord c = allCustomers.retrieve();
+                if (c != null) {
+                    sortableList.add(c);
+                }
+                if (allCustomers.last()) break;
+                allCustomers.findNext();
+            }
+
+            // 2. Sort the list alphabetically by name (Simulating O(n^2) manual sort)
+            int n = sortableList.size();
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - i - 1; j++) {
+                    if (sortableList.get(j).getName().compareToIgnoreCase(sortableList.get(j + 1).getName()) > 0) {
+                        // Swap
+                        CustomerRecord temp = sortableList.get(j);
+                        sortableList.set(j, sortableList.get(j + 1));
+                        sortableList.set(j + 1, temp);
+                    }
+                }
+            }
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- All Customers Sorted Alphabetically ---\n");
+            for (CustomerRecord c : sortableList) {
+                sb.append(c.toString()).append("\n");
+            }
+            
             return sb.toString();
         }
     }
@@ -708,13 +727,13 @@ public class ManagementSystemGUI {
             return false;
         }
 
-        // Console Option 12: Top 3 Products
+        // --- PHASE II QUERY 15: Show Top 3 Products by Average Rating (O(n)) ---
         public String getTop3Products() {
             if (allProducts.empty()) {
                 return "No products available.";
             }
 
-            // 1. Extract products into a temporary, sortable list
+            // 1. Extract products into a temporary, sortable list (O(n))
             ArrayList<Product> sortableProducts = new ArrayList<>();
             allProducts.findFirst();
             while (true) {
@@ -732,12 +751,11 @@ public class ManagementSystemGUI {
                 return "No products available.";
             }
 
+            // 2. Sort the products by average rating (O(n log n) using external sort)
             sortableProducts.sort(
                     Comparator.comparingDouble((Product p) -> {
                         double avg = calculateAverageRating(p);
-                        if (avg >= 4.99999999) {
-                            return 5.0;
-                        }
+                        if (avg >= 4.99999999) return 5.0; // Handle near 5.0 comparison issue
                         return avg;
                     })
                             .reversed()
@@ -753,8 +771,8 @@ public class ManagementSystemGUI {
 
                 if (avgRating > 0) {
                     sb.append(count + 1).append(". ").append(p.getName()).append("\n")
-                            .append("    Rating: ").append(String.format("%.2f", avgRating)).append(" out of 5\n")
-                            .append("    Price: $").append(String.format("%.2f", p.getPrice())).append("\n");
+                            .append("     Rating: ").append(String.format("%.2f", avgRating)).append(" out of 5\n")
+                            .append("     Price: $").append(String.format("%.2f", p.getPrice())).append("\n");
                     count++;
                 }
 
@@ -769,8 +787,8 @@ public class ManagementSystemGUI {
             return sb.toString();
         }
 
-        // Console Option 14: Common Reviewed Products
-        public String commonProducts(int cust1, int cust2) {
+        // --- PHASE II QUERY 12: Find Common Reviewed Products Between Two Customers (O(n * r_avg)) ---
+        public String findCommonProductsBetweenCustomers(int cust1, int cust2) {
             StringBuilder sb = new StringBuilder();
 
             CustomerRecord c1 = customers.findCustomerById(cust1);
@@ -787,12 +805,12 @@ public class ManagementSystemGUI {
             if (!allProducts.empty()) {
                 allProducts.findFirst();
                 while (true) {
-                    Product p = allProducts.retrieve();
-
+                    Product p = allProducts.retrieve(); 
+                    
                     if (p != null) {
-                        double rating = calculateAverageRating(p);
+                        double rating = calculateAverageRating(p); 
 
-                        if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p, cust2)) {
+                        if (rating > 4.0 && hasCustomerReviewed(p, cust1) && hasCustomerReviewed(p, cust2)) { 
                             count++;
                             sb.append(count).append(". ").append(p.getName())
                                     .append(" - ").append(String.format("%.1f", rating)).append(" out of 5\n");
@@ -802,7 +820,7 @@ public class ManagementSystemGUI {
                     if (allProducts.last()) {
                         break;
                     }
-                    allProducts.findNext();
+                    allProducts.findNext(); 
                 }
             }
 
@@ -811,6 +829,114 @@ public class ManagementSystemGUI {
             }
             return sb.toString();
         }
+
+
+        // --- PHASE II QUERY 14: List All Products Within a Price Range (O(n)) ---
+        public String getProductsInPriceRange(double minPrice, double maxPrice) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Products in Price Range [$").append(String.format("%.2f", minPrice)).append(" - $").append(String.format("%.2f", maxPrice)).append("] ===\n");
+            
+            if (allProducts.empty()) {
+                return sb.append("No products available.").toString();
+            }
+            
+            int count = 0;
+            allProducts.findFirst();
+            while(true) {
+                Product p = allProducts.retrieve();
+                if (p != null) {
+                    double price = p.getPrice();
+                    if (price >= minPrice && price <= maxPrice) {
+                        sb.append(String.format("ID %d: %s | Price: $%.2f | Stock: %d\n",
+                                p.getProductId(), p.getName(), p.getPrice(), p.getStock()));
+                        count++;
+                    }
+                }
+                if (allProducts.last()) break;
+                allProducts.findNext();
+            }
+            
+            if (count == 0) {
+                sb.append("No products found in this range.");
+            }
+            return sb.toString();
+        }
+
+
+        // --- PHASE II QUERY 17: Show All Reviews for a Product (by ID) (O(log n + r)) ---
+        public String showReviewsForProduct(int productId) {
+            Product product = findProductById(productId);
+            if (product == null) {
+                return "Product ID " + productId + " not found.";
+            }
+
+            LinkedList<Review> reviews = product.getReviews();
+            if (reviews.empty()) {
+                return "Product " + product.getName() + " has no reviews.";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("--- Reviews for ").append(product.getName()).append(" (ID: ").append(productId).append(") ---\n");
+            sb.append("Average Rating: ").append(String.format("%.2f", calculateAverageRating(product))).append(" / 5\n\n");
+
+            reviews.findFirst();
+            int count = 0;
+            while (true) {
+                Review r = reviews.retrieve();
+                if (r != null) {
+                    CustomerRecord c = customers.findCustomerById(r.getCustomerId());
+                    String cName = c != null ? c.getName() : "Unknown Customer";
+
+                    count++;
+                    sb.append(count).append(". Review ID: ").append(r.getReviewId()).append("\n")
+                            .append("     Customer: ").append(cName).append(" (ID: ").append(r.getCustomerId()).append(")\n")
+                            .append("     Rating: ").append(r.getRating()).append(" / 5\n")
+                            .append("     Comment: \"").append(r.getComment()).append("\"\n");
+                }
+
+                if (reviews.last()) break;
+                reviews.findNext();
+            }
+            return sb.toString();
+        }
+
+        // --- FIXED: Method called by Show Out-of-Stock Products button ---
+        public void getOutOfStockProducts() {
+            if (allProducts.empty()) {
+                System.out.println("No products available.");
+                return;
+            }
+
+            boolean found = false;
+            allProducts.findFirst();
+            
+            if (allProducts.retrieve() == null && allProducts.getHead() == null) {
+                System.out.println("No products available.");
+                return;
+            }
+
+            while (true) {
+                Product p = allProducts.retrieve();
+
+                if (p != null && p.getStock() == 0) {
+                    System.out.println("ID: " + p.getProductId()
+                            + ", Name: " + p.getName()
+                            + " is OUT (Stock: 0)");
+                    found = true;
+                }
+
+                if (allProducts.last()) {
+                    break;
+                }
+                allProducts.findNext();
+            }
+            
+            if (!found) {
+                System.out.println("No products currently out of stock.");
+            }
+        }
+        
+        // --- Utility Methods for Order Panel ---
 
         public String getAllProductsForOrder() {
             if (allProducts.empty()) {
@@ -831,44 +957,6 @@ public class ManagementSystemGUI {
                 allProducts.findNext();
             }
             return sb.toString();
-        }
-
-        public void getOutOfStockProducts() {
-            if (allProducts.empty()) {
-                System.out.println("No products available.");
-                return;
-            }
-
-            allProducts.findFirst();
-            boolean found = false;
-
-            // Safety check for an empty list after findFirst()
-            if (allProducts.retrieve() == null && allProducts.getHead() == null) {
-                System.out.println("No products available.");
-                return;
-            }
-
-            while (true) {
-                Product aProduct = allProducts.retrieve();
-
-                // Ensure aProduct is not null before checking its stock
-                if (aProduct != null && aProduct.getStock() == 0) {
-                    // Print the required information for the output box
-                    System.out.println("ID: " + aProduct.getProductId()
-                            + ", Name: " + aProduct.getName()
-                            + " is OUT (Stock: 0)");
-                    found = true;
-                }
-
-                if (allProducts.last()) {
-                    break;
-                }
-                allProducts.findNext();
-            }
-
-            if (!found) {
-                System.out.println("No products currently out of stock.");
-            }
         }
 
         public String getInStockProductsForOrder() {
@@ -949,7 +1037,7 @@ public class ManagementSystemGUI {
             return false;
         }
 
-        // Console Option 13: Orders Between Dates
+        // Console Option 13: Orders Between Dates (O(n) linear scan)
         public String showOrdersBetween(String start, String end) {
             Node<Order> current = orderList.getHead();
             StringBuilder sb = new StringBuilder();
@@ -960,6 +1048,7 @@ public class ManagementSystemGUI {
                 Order o = current.data;
                 String date = o.getOrderDate();
 
+                // String comparison works for YYYY-MM-DD
                 if (date.compareTo(start) >= 0 && date.compareTo(end) <= 0) {
                     sb.append(o.toString()).append("\n");
                     found = true;
@@ -1219,7 +1308,7 @@ public class ManagementSystemGUI {
 
     private void refreshProductListArea() {
         if (orderProductListArea != null) {
-            orderProductListArea.setText(products.getAllProductsForOrder());
+            orderProductListArea.setText(products.getInStockProductsForOrder());
         }
     }
 
@@ -1261,7 +1350,7 @@ public class ManagementSystemGUI {
 
     // 4. GUI Component Methods
     private void createAndShowGUI() {
-        frame = new JFrame("E-Commerce Management System");
+        frame = new JFrame("E-Commerce Management System (Phase II)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(true);
 
@@ -1287,6 +1376,7 @@ public class ManagementSystemGUI {
         }
 
         // Buttons Setup
+        // Adjusted grid layout to 6 rows x 3 columns for 17 main options + Exit
         JPanel buttonPanel = new JPanel(new GridLayout(6, 3, 15, 15));
         buttonPanel.setBackground(DARK_BLUE);
         buttonPanel.setMaximumSize(new Dimension(850, 260));
@@ -1304,10 +1394,17 @@ public class ManagementSystemGUI {
         JButton addReviewBtn = createMenuButton("9. Add Review");
         JButton editReviewBtn = createMenuButton("10. Edit Review");
         JButton extractReviewsBtn = createMenuButton("11. Extract Customer Reviews");
-        JButton topProductsBtn = createMenuButton("12. Top 3 Products");
+        
+        // --- PHASE II ADVANCED QUERIES ---
+        JButton commonProductsBtn = createMenuButton("12. Find Common Reviewed Products");
         JButton ordersBetweenDatesBtn = createMenuButton("13. Orders Between Dates");
-        JButton commonProductsBtn = createMenuButton("14. Common Reviewed Products");
-        JButton exitBtn = createMenuButton("15. Exit");
+        JButton priceRangeBtn = createMenuButton("14. Products in Price Range");
+        JButton topProductsBtn = createMenuButton("15. Top 3 Products");
+        JButton sortCustomersBtn = createMenuButton("16. Customers Sorted Alphabetically");
+        JButton viewProductReviewsBtn = createMenuButton("17. View Product Reviews");
+        
+        JButton exitBtn = createMenuButton("18. Exit"); 
+        // -----------------------------------
 
         buttonPanel.add(addProductBtn);
         buttonPanel.add(removeProductBtn);
@@ -1320,10 +1417,15 @@ public class ManagementSystemGUI {
         buttonPanel.add(addReviewBtn);
         buttonPanel.add(editReviewBtn);
         buttonPanel.add(extractReviewsBtn);
-        buttonPanel.add(topProductsBtn);
-        buttonPanel.add(ordersBetweenDatesBtn);
+        
+        // Adding new Phase II buttons
         buttonPanel.add(commonProductsBtn);
-        buttonPanel.add(exitBtn);
+        buttonPanel.add(ordersBetweenDatesBtn);
+        buttonPanel.add(priceRangeBtn);
+        buttonPanel.add(topProductsBtn);
+        buttonPanel.add(sortCustomersBtn);
+        buttonPanel.add(viewProductReviewsBtn);
+        buttonPanel.add(exitBtn); 
 
         container.add(Box.createRigidArea(new Dimension(0, 15)));
         container.add(buttonPanel);
@@ -1333,82 +1435,68 @@ public class ManagementSystemGUI {
         cards.setPreferredSize(new Dimension(950, 450));
         cards.setBackground(DARK_BLUE);
 
+        // --- Core Panels ---
         cards.add(createWelcomePanel(), "home");
         cards.add(createAddProductPanel(), "addProduct");
         cards.add(createAddCustomerPanel(), "addCustomer");
         cards.add(createPlaceOrderPanel(), "placeOrder");
         cards.add(createAddReviewPanel(), "addReview");
-
-        cards.add(createFillerPanel("Select the action from the menu.", "viewOrders"));
-        cards.add(createFillerPanel("Select the action from the menu.", "cancelOrder"));
-        cards.add(createFillerPanel("Select the action from the menu.", "updateProduct"));
-        cards.add(createFillerPanel("Select the action from the menu.", "updateOrderStatus"));
-        cards.add(createFillerPanel("Select the action from the menu.", "extractReviews"));
-        cards.add(createFillerPanel("Select the action from the menu.", "topProducts"));
-        cards.add(createFillerPanel("Select the action from the menu.", "commonProducts"));
-
         cards.add(createEditReviewPanel(), "editReview");
-        cards.add(createOrdersBetweenDatesPanel(), "ordersBetween");
+        
+        // --- Advanced Query Panels ---
+        cards.add(createOrdersBetweenDatesPanel(), "ordersBetween"); // 13
+        cards.add(createPriceRangePanel(), "priceRange"); // 14
+        
+        // Add a filler panel for options that use dialogs/output cards directly
+        cards.add(createFillerPanel("Select the action from the menu.", "filler"));
 
-        container.add(Box.createRigidArea(new Dimension(0, 10)));
-        container.add(cards);
 
         // --- Action Listeners ---
         addProductBtn.addActionListener(e -> cardLayout.show(cards, "addProduct"));
-
-        // Option 2: Remove Product (using dialog selector)
         removeProductBtn.addActionListener(e -> showRemoveProductDialog());
-
-        // Option 3: Update Product Details (using dialog selector)
         updateProductBtn.addActionListener(e -> showUpdateProductDialog());
-
-        // Option 4: Add Customer
         addCustomerBtn.addActionListener(e -> cardLayout.show(cards, "addCustomer"));
-
-        // Option 5: Place Order
         placeOrderBtn.addActionListener(e -> {
             refreshProductListArea();
             cardLayout.show(cards, "placeOrder");
         });
-
-        // Option 6: Cancel Order (using dialog selector)
         cancelOrderBtn.addActionListener(e -> showCancelOrderDialog());
-
-        // Option 7: Update Order Status (using dialog selector)
         updateOrderStatusBtn.addActionListener(e -> showUpdateOrderStatusDialog());
-
-        // Option 8: View Customer Orders (using dialog selector)
         viewOrdersBtn.addActionListener(e -> showViewCustomerOrdersDialog());
-
-        // Option 9: Add Review
         addReviewBtn.addActionListener(e -> cardLayout.show(cards, "addReview"));
-
-        // Option 10: Edit Review 
         editReviewBtn.addActionListener(e -> {
-            // 1. Remove the old Edit Review card 
-            cards.remove(cards.getComponent(cards.getComponentCount() - 2));
-
-            // 2. Add a freshly generated panel 
-            cards.add(createEditReviewPanel(), "editReview");
-
-            // 3. Show the new, current card
+            cards.remove(cards.getComponent(cards.getComponentCount() - 1)); // Remove filler/old edit panel
+            cards.add(createEditReviewPanel(), "editReview"); // Add fresh panel
             cardLayout.show(cards, "editReview");
         });
-
-        // Option 11: Extract Customer Reviews (using dialog selector)
         extractReviewsBtn.addActionListener(e -> showExtractCustomerReviewsDialog());
-
-        // Option 12: Show Top 3 Products
-        topProductsBtn.addActionListener(e -> showTopProductsDialog());
-
-        // Option 13: Orders Between Dates
+        
+        // PHASE II ADVANCED QUERY LISTENERS
+        
+        // 12. Common Reviewed Products Between Two Customers
+        commonProductsBtn.addActionListener(e -> showCommonProductsBetweenCustomersDialog());
+        
+        // 13. Orders Between Dates
         ordersBetweenDatesBtn.addActionListener(e -> cardLayout.show(cards, "ordersBetween"));
+        
+        // 14. Products in Price Range
+        priceRangeBtn.addActionListener(e -> cardLayout.show(cards, "priceRange"));
+        
+        // 15. Show Top 3 Products
+        topProductsBtn.addActionListener(e -> showTopProductsDialog());
+        
+        // 16. List All Customers Sorted Alphabetically
+        sortCustomersBtn.addActionListener(e -> showCustomersSortedAlphabeticallyDialog());
+        
+        // 17. Show All Reviews for a Product
+        viewProductReviewsBtn.addActionListener(e -> showReviewsForProductDialog());
 
-        // Option 14: Common Reviewed Products (using dialog selectors)
-        commonProductsBtn.addActionListener(e -> showCommonProductsDialog());
 
-        // Option 15: Exit
+        // 18. Exit
         exitBtn.addActionListener(e -> frame.dispose());
+
+        container.add(Box.createRigidArea(new Dimension(0, 10)));
+        container.add(cards);
 
         frame.add(container);
         frame.pack();
@@ -1430,7 +1518,7 @@ public class ManagementSystemGUI {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(DARK_BLUE);
         JLabel instructions = new JLabel("<html><div style='text-align: center;'>"
-                + "Welcome to your E-commerce System!"
+                + "Welcome to your E-commerce System (Phase II)!"
                 + "<br><br>Manage products, track orders, and monitor customers"
                 + "<br><br>Select an option"
                 + "</div></html>", SwingConstants.CENTER);
@@ -1553,7 +1641,7 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 2 & 3. Remove/Update Product Dialogs
+    // 2 & 3. Remove/Update Product Dialogs (UNCHANGED)
     private void showRemoveProductDialog() {
         JComboBox<String> productSelector = createIdSelector(
                 products.allProducts,
@@ -1706,18 +1794,15 @@ public class ManagementSystemGUI {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font fieldFont = new Font("Arial", Font.PLAIN, 14);
         Dimension fieldSize = new Dimension(150, 25);
 
         // Fields 
         JTextField customerIdField = new JTextField();
         JTextField orderIdField = new JTextField();
-        // Assuming LocalDate is imported
         JTextField dateField = new JTextField(LocalDate.now().toString());
         JTextField productIdField = new JTextField();
 
-        // Initialize the class field here
         this.orderProductListArea = new JTextArea();
 
         customerIdField.setPreferredSize(fieldSize);
@@ -1816,7 +1901,7 @@ public class ManagementSystemGUI {
         gbc.gridwidth = 1;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel selectedLabel = new JLabel("Selected Products:");
         selectedLabel.setForeground(Color.WHITE);
         panel.add(selectedLabel, gbc);
@@ -1840,20 +1925,20 @@ public class ManagementSystemGUI {
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(selectedScrollPane, gbc);
 
-    // --- Row 6: Checkout Button + Out-of-Stock Button 
-    JButton checkoutBtn = new JButton("Place Order (Checkout)");
+        // --- Row 6: Checkout Button + Out-of-Stock Button 
+        JButton checkoutBtn = new JButton("Place Order (Checkout)");
 
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-    buttonPanel.setOpaque(false);
-    buttonPanel.add(checkoutBtn);
-    buttonPanel.add(showOutOfStockBtn);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(checkoutBtn);
+        buttonPanel.add(showOutOfStockBtn);
 
-    gbc.gridx = 0;
-    gbc.gridy = 6;
-    gbc.gridwidth = 4;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.anchor = GridBagConstraints.CENTER;
-    panel.add(buttonPanel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 4;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(buttonPanel, gbc);
 
         // --- Logic: Stock Button ---
         showOutOfStockBtn.addActionListener(e -> {
@@ -1972,7 +2057,7 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 6. Cancel Order Dialog
+    // 6. Cancel Order Dialog (UNCHANGED)
     private void showCancelOrderDialog() {
         JComboBox<String> orderSelector = createIdSelector(
                 orders.getOrderList(),
@@ -1997,7 +2082,7 @@ public class ManagementSystemGUI {
         }
     }
 
-    // 7. Update Order Status Dialog
+    // 7. Update Order Status Dialog (UNCHANGED)
     private void showUpdateOrderStatusDialog() {
         JComboBox<String> orderSelector = createIdSelector(
                 orders.getOrderList(),
@@ -2031,7 +2116,7 @@ public class ManagementSystemGUI {
         }
     }
 
-    // 8. View Customer Orders Dialog
+    // 8. View Customer Orders Dialog (UNCHANGED)
     private void showViewCustomerOrdersDialog() {
         JComboBox<String> customerSelector = createIdSelector(
                 customers.allCustomers,
@@ -2066,9 +2151,7 @@ public class ManagementSystemGUI {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.anchor = GridBagConstraints.WEST;
         Font labelFont = new Font("Arial", Font.BOLD, 16);
-        Font fieldFont = new Font("Arial", Font.PLAIN, 16);
-        Dimension fieldSize = new Dimension(70, 30);
-
+        
         JTextField reviewIdField = new JTextField();
         JTextField productIdField = new JTextField();
         JTextField customerIdField = new JTextField();
@@ -2076,6 +2159,7 @@ public class ManagementSystemGUI {
         JTextArea commentArea = new JTextArea(3, 20);
         JScrollPane commentScrollPane = new JScrollPane(commentArea);
 
+        Dimension fieldSize = new Dimension(70, 30);
         reviewIdField.setPreferredSize(fieldSize);
         productIdField.setPreferredSize(fieldSize);
         customerIdField.setPreferredSize(fieldSize);
@@ -2230,7 +2314,7 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 10. Edit Review Helper
+    // 10. Edit Review Helper (UNCHANGED)
     private JComboBox<String> createReviewIdSelector(Reviews reviews, Customers customers, Products products) {
         ArrayList<String> items = new ArrayList<>();
         LinkedList<Review> list = reviews.getAllReviews();
@@ -2262,7 +2346,7 @@ public class ManagementSystemGUI {
         return new JComboBox<>(items.toArray(new String[0]));
     }
 
-    // 10. Edit Review Panel
+    // 10. Edit Review Panel (UNCHANGED)
     private JPanel createEditReviewPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 50));
@@ -2425,7 +2509,7 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 11. Extract Reviews Dialog
+    // 11. Extract Reviews Dialog (UNCHANGED)
     private void showExtractCustomerReviewsDialog() {
         JComboBox<String> customerSelector = createIdSelector(
                 customers.allCustomers,
@@ -2451,7 +2535,7 @@ public class ManagementSystemGUI {
         }
     }
 
-    // 12. Show Top 3 Products Dialog
+    // 15. Show Top 3 Products Dialog (UNCHANGED)
     private void showTopProductsDialog() {
         String topData = products.getTop3Products();
         Dimension wideSize = new Dimension(900, 300);
@@ -2461,7 +2545,7 @@ public class ManagementSystemGUI {
         cardLayout.show(cards, resultCardName);
     }
 
-    // 13. Orders Between Two Dates 
+    // 13. Orders Between Two Dates Panel (UNCHANGED)
     private JPanel createOrdersBetweenDatesPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
@@ -2540,16 +2624,23 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 14. Common Reviewed Products Dialog
-    private void showCommonProductsDialog() {
+    // --- PHASE II ADVANCED QUERY PANELS ---
+
+    // 12. Common Reviewed Products Dialog (New Logic)
+    private void showCommonProductsBetweenCustomersDialog() {
         JComboBox<String> customerSelector1 = createIdSelector(
                 customers.allCustomers,
                 c -> String.format("ID: %d - %s", c.getCustomerId(), c.getName())
         );
+        customerSelector1.insertItemAt("--- Select Customer 1 ---", 0);
+        customerSelector1.setSelectedIndex(0);
+        
         JComboBox<String> customerSelector2 = createIdSelector(
                 customers.allCustomers,
                 c -> String.format("ID: %d - %s", c.getCustomerId(), c.getName())
         );
+        customerSelector2.insertItemAt("--- Select Customer 2 ---", 0);
+        customerSelector2.setSelectedIndex(0);
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
         panel.add(new JLabel("Customer 1:"));
@@ -2557,7 +2648,7 @@ public class ManagementSystemGUI {
         panel.add(new JLabel("Customer 2:"));
         panel.add(customerSelector2);
 
-        int option = JOptionPane.showConfirmDialog(frame, panel, "Select Two Customers", JOptionPane.OK_CANCEL_OPTION);
+        int option = JOptionPane.showConfirmDialog(frame, panel, "Find Common Reviewed Products (Rating > 4.0)", JOptionPane.OK_CANCEL_OPTION);
 
         if (option == JOptionPane.OK_OPTION) {
             try {
@@ -2565,22 +2656,129 @@ public class ManagementSystemGUI {
                 int id2 = extractIdFromString((String) customerSelector2.getSelectedItem());
 
                 if (id1 != -1 && id2 != -1) {
-                    String commonData = products.commonProducts(id1, id2);
+                    // Call the O(n * r_avg) method in the Products class
+                    String commonData = products.findCommonProductsBetweenCustomers(id1, id2);
+                    
                     String resultCardName = "commonProductsResult_" + System.currentTimeMillis();
                     Dimension wideSize = new Dimension(900, 300);
                     JPanel resultsPanel = createLargeTextResultsPanel(commonData, "Common Reviewed Products", wideSize);
                     cards.add(resultsPanel, resultCardName);
                     cardLayout.show(cards, resultCardName);
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Invalid selection for one or both customers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Select both customers.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error processing selection.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Error processing selection: " + ex.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    // 14. Products in Price Range Panel (New Logic)
+    private JPanel createPriceRangePanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+        panel.setBackground(DARK_BLUE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.CENTER;
+        Font labelFont = new Font("Arial", Font.BOLD, 18);
+        Dimension fieldSize = new Dimension(300, 45);
+
+        JLabel minLabel = new JLabel("Minimum Price:");
+        minLabel.setForeground(Color.WHITE);
+        minLabel.setFont(labelFont);
+        gbc.gridx = 0; gbc.gridy = 0; panel.add(minLabel, gbc);
+        JTextField minField = new JTextField();
+        minField.setPreferredSize(fieldSize);
+        gbc.gridx = 1; panel.add(minField, gbc);
+        
+        JLabel maxLabel = new JLabel("Maximum Price:");
+        maxLabel.setForeground(Color.WHITE);
+        maxLabel.setFont(labelFont);
+        gbc.gridx = 0; gbc.gridy = 1; panel.add(maxLabel, gbc);
+        JTextField maxField = new JTextField();
+        maxField.setPreferredSize(fieldSize);
+        gbc.gridx = 1; panel.add(maxField, gbc);
+
+        JButton showBtn = new JButton("Show Products in Range");
+        showBtn.setFont(new Font("Arial", Font.BOLD, 16));
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.weighty = 0; panel.add(showBtn, gbc);
+
+        JPanel filler = new JPanel(); filler.setBackground(DARK_BLUE);
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.weighty = 1.0; gbc.fill = GridBagConstraints.BOTH; panel.add(filler, gbc);
+
+        showBtn.addActionListener(e -> {
+            try {
+                double min = Double.parseDouble(minField.getText().trim());
+                double max = Double.parseDouble(maxField.getText().trim());
+
+                if (min < 0 || max < 0 || min > max) {
+                    JOptionPane.showMessageDialog(frame, "Invalid price range. Min must be <= Max, and both must be non-negative.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Call the O(log n + k) range query in the Products class
+                String rangeData = products.getProductsInPriceRange(min, max);
+                
+                Dimension wideSize = new Dimension(900, 300);
+                String resultCardName = "priceRangeResult_" + System.currentTimeMillis();
+                JPanel resultsPanel = createLargeTextResultsPanel(rangeData, String.format("Products in Range ($%.2f - $%.2f)", min, max), wideSize);
+                
+                cards.add(resultsPanel, resultCardName);
+                cardLayout.show(cards, resultCardName);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Invalid input. Enter numeric values for price.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        return panel;
+    }
+    
+    // 16. List All Customers Sorted Alphabetically (New Logic)
+    private void showCustomersSortedAlphabeticallyDialog() {
+        // Call the O(n^2) method in the Customers class
+        String customerData = customers.listCustomersAlphabetically();
+        
+        Dimension wideSize = new Dimension(700, 400);
+        String resultCardName = "sortedCustomersResult_" + System.currentTimeMillis();
+        JPanel resultsPanel = createLargeTextResultsPanel(customerData, "All Customers (Sorted Alphabetically)", wideSize);
+        
+        cards.add(resultsPanel, resultCardName);
+        cardLayout.show(cards, resultCardName);
+    }
+    
+    // 17. Show All Reviews for a Product (New Logic)
+    private void showReviewsForProductDialog() {
+        JComboBox<String> productSelector = createIdSelector(
+                products.allProducts,
+                p -> String.format("ID: %d - %s", p.getProductId(), p.getName())
+        );
+        productSelector.insertItemAt("--- Select Product to View Reviews ---", 0);
+        productSelector.setSelectedIndex(0);
+        
+        int option = JOptionPane.showConfirmDialog(frame, productSelector, "Select Product to View All Reviews:", JOptionPane.OK_CANCEL_OPTION);
+
+        if (option == JOptionPane.OK_OPTION && productSelector.getSelectedIndex() > 0) {
+            try {
+                int id = extractIdFromString((String) productSelector.getSelectedItem());
+                
+                // Call the O(log n + r) method in the Products class
+                String reviewData = products.showReviewsForProduct(id);
+                
+                Dimension wideSize = new Dimension(900, 400);
+                String resultCardName = "productReviewsResult_" + System.currentTimeMillis();
+                JPanel resultsPanel = createLargeTextResultsPanel(reviewData, "All Reviews for Product ID " + id, wideSize);
+                
+                cards.add(resultsPanel, resultCardName);
+                cardLayout.show(cards, resultCardName);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Error processing selection: " + ex.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    // Reusable Large Results Panel
+
+    // Reusable Large Results Panel (UNCHANGED)
     private JPanel createLargeTextResultsPanel(String results, String title, Dimension scrollPaneSize) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
@@ -2632,7 +2830,7 @@ public class ManagementSystemGUI {
         return panel;
     }
 
-    // 13. Orders Between Dates Results Panel
+    // 13. Orders Between Dates Results Panel (UNCHANGED)
     private JPanel createOrdersResultsPanel(String results, String from, String to, Dimension scrollPaneSize) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
@@ -2646,11 +2844,7 @@ public class ManagementSystemGUI {
         JLabel titleLabel = new JLabel("Orders Found (" + from + " to " + to + ")");
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleFont);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.weighty = 0;
-        panel.add(titleLabel, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.weighty = 0; panel.add(titleLabel, gbc);
         JTextArea outputArea = new JTextArea(12, 90);
         outputArea.setText(results);
         outputArea.setEditable(false);
@@ -2658,20 +2852,10 @@ public class ManagementSystemGUI {
         outputArea.setForeground(Color.BLACK);
         JScrollPane scrollPane = new JScrollPane(outputArea);
         scrollPane.setPreferredSize(scrollPaneSize);
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        panel.add(scrollPane, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 1.0; panel.add(scrollPane, gbc);
         JButton backBtn = new JButton("<< Back to Main Menu");
         backBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        panel.add(backBtn, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.weighty = 0; gbc.fill = GridBagConstraints.NONE; panel.add(backBtn, gbc);
         backBtn.addActionListener(e -> cardLayout.show(cards, "home"));
         return panel;
     }
