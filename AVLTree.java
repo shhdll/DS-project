@@ -1,4 +1,4 @@
-enum Order {
+enum TraversalOrder {
     PreOrder,
     InOrder,
     PostOrder
@@ -128,11 +128,11 @@ public class AVLTree<T> {
         return false;
     }
 
-    public void traverse(Order ord) {
+    public void traverse(TraversalOrder ord) {
         traverseSub(root, ord);
     }
 
-    private void traverseSub(AVLNode<T> node, Order ord) {
+    private void traverseSub(AVLNode<T> node, TraversalOrder ord) {
         if (node == null)
             return;
 

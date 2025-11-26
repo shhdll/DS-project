@@ -168,7 +168,7 @@ public class ManagementSystem {
                     System.out.print("Enter Order Date (YYYY-MM-DD): ");
                     String newOrderDate = sc.nextLine();
 
-                    LinkedList<Product> selectedProducts = new LinkedList<>();
+                    AVLTree<Product> selectedProducts = new AVLTree<>();
                     boolean addingProducts = true;
                     boolean stockError = false;
 
@@ -190,7 +190,7 @@ public class ManagementSystem {
                                     realProduct.setStock(realProduct.getStock() - 1);
 
                                     // 2. Add product (instance) to the order list
-                                    selectedProducts.insert(realProduct);
+                                    selectedProducts.insert(realProduct.getProductId(),realProduct);
                                     System.out.println("Added: " + realProduct.getName() + " (Stock remaining: " + realProduct.getStock() + ")");
                                 } else {
                                     System.out.println("ERROR: Stock for " + realProduct.getName() + " is zero. Cannot add.");
@@ -420,18 +420,18 @@ public class ManagementSystem {
                 String orderDate = parts[4].trim();
                 String status = parts[5].trim();
 
-                LinkedList<Product> orderProducts = new LinkedList<>();
+                AVLTree<Product> orderProducts = new AVLTree<>();
                 for (String pidStr : productIdsStr.split(";")) {
                     int productId = Integer.parseInt(pidStr.trim());
                     Product p = products.findProductById(productId);
                     if (p != null) {
-                        orderProducts.insert(p);
+                        orderProducts.insert(p.getProductId(),p);
                     }
                 }
 
                 Order newOrder = new Order(orderId, customerId, orderProducts, orderDate);
                 newOrder.setStatus(status);
-                orders.getOrderList().insert(newOrder);
+                orders.getOrderList().insert(newOrder.getOrderId(),newOrder);
 
                 Customer customer = customers.findCustomerById(customerId);
                 if (customer != null) {
@@ -522,42 +522,53 @@ public class ManagementSystem {
             System.err.println("Error writing new product to file: " + e.getMessage());
         }
     }
-
     private static void appendOrderToFile(String filePath, Order order) {
-    // --- 1. Calculate Total Price and Format Product IDs ---
-    double calculatedTotalPrice = 0.0;
     StringBuilder productIdsBuilder = new StringBuilder();
-    
-    LinkedList<Product> productList = order.getProductList();
-    Node<Product> tmp = productList.getHead(); 
-    boolean first = true;
-    
-    while (tmp != null) {
-        // Calculate Price
-        calculatedTotalPrice += tmp.data.getPrice();
-        
-        if (!first) {
-            productIdsBuilder.append(";");
-        }
-        productIdsBuilder.append(tmp.data.getProductId());
-        first = false;
-        tmp = tmp.next;
-    }
-    
+    double[] totalPrice = {0};  // small trick to allow modification inside recursion
+    boolean[] first = {true};
+
+    inorderProcess(order.getProductList().getRoot(), productIdsBuilder, totalPrice, first);
+
     String productIdsStr = productIdsBuilder.toString();
 
-    // --- 2. Write to File ---
-    try (FileWriter fw = new FileWriter(filePath, true); 
+    try (FileWriter fw = new FileWriter(filePath, true);
          PrintWriter pw = new PrintWriter(fw)) {
-        
-        String csvLine = String.format("%d,%d,\"%s\",%.2f,%s,%s",  order.getOrderId(), order.getOcustomer(),productIdsStr,calculatedTotalPrice,order.getOrderDate(),order.getStatus());
+
+        String csvLine = String.format(
+                "%d,%d,\"%s\",%.2f,%s,%s",
+                order.getOrderId(),
+                order.getOcustomer(),
+                productIdsStr,
+                totalPrice[0],
+                order.getOrderDate(),
+                order.getStatus()
+        );
+
         pw.println(csvLine);
-        
+
     } catch (IOException e) {
         System.err.println("Error writing new order to file: " + e.getMessage());
     }
 }
-    
+private static void inorderProcess(AVLNode<Product> root,StringBuilder ids,double[] totalPrice,boolean[] first) {
+
+    if (root == null) return;
+
+    inorderProcess(root.left, ids, totalPrice, first);
+
+    // Visit root (Product)
+    Product p = root.data;
+    totalPrice[0] += p.getPrice();
+
+    if (!first[0]) {
+        ids.append(";");
+    }
+    ids.append(p.getProductId());
+    first[0] = false;
+
+    inorderProcess(root.right, ids, totalPrice, first);
+}
+
 
     private static void appendReviewToFile(String filePath, Review review) {
         try (FileWriter fw = new FileWriter(filePath, true); 

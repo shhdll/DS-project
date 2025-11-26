@@ -118,14 +118,10 @@ public class Orders {
     }
 
     public boolean updateOrderStatus(int orderId, String newStatus) {
-        Node<Order> current = orderList.getHead();
-        while (current != null) {
-            Order order = current.getData();
-            if (order.getOrderId() == orderId) {
-                order.setStatus(newStatus);
-                return true;
-            }
-            current = current.getNext();
+        if (orderList.findkey(orderId)) {
+            Order o = orderList.retrieve();
+            o.setStatus(newStatus);
+            return true;
         }
         return false;
     }

@@ -13,7 +13,9 @@ public class Order {
         this.orderDate = orderDate;
         this.status = "Pending"; // default status
     }
-
+    public Order() {
+        this.status = "Pending"; // default status
+    }
     public void addProduct(Product P) {
 
         productList.insert(P.getProductId(),P);
