@@ -1,9 +1,11 @@
+
 enum TraversalOrder {
     PreOrder,
     InOrder,
     PostOrder
 }
 //we can move enum to a separate file 
+
 public class AVLTree<T> {
 
     AVLNode<T> root, current;
@@ -26,17 +28,19 @@ public class AVLTree<T> {
 
     public boolean findkey(int tkey) {
         AVLNode<T> p = root, q = root;
-        if (empty())
+        if (empty()) {
             return false;
+        }
         while (p != null) {
             q = p;
             if (p.key == tkey) {
                 current = p;
                 return true;
-            } else if (tkey < p.key)
-                p = p.left;
-            else
+            } else if (tkey < p.key) {
+                p = p.left; 
+            }else {
                 p = p.right;
+            }
         }
         current = q;
         return false;
@@ -54,10 +58,11 @@ public class AVLTree<T> {
             root = rebalanceTree(root);
             return true;
         } else {
-            if (k < current.key)
-                current.left = p;
-            else
+            if (k < current.key) {
+                current.left = p; 
+            }else {
                 current.right = p;
+            }
             current = p;
             root = rebalanceTree(root);
             return true;
@@ -77,8 +82,9 @@ public class AVLTree<T> {
             } else if (res > 0) {
                 q = p;
                 p = p.right;
-            } else
+            } else {
                 found = true;
+            }
         }
 
         if (found) {
@@ -92,8 +98,9 @@ public class AVLTree<T> {
                 p.key = min.key;
                 p.data = min.data;
                 deleteNode(min, q);
-            } else
+            } else {
                 deleteNode(p, q);
+            }
 
             current = root;
             root = rebalanceTree(root);
@@ -104,23 +111,26 @@ public class AVLTree<T> {
 
     private void deleteNode(AVLNode<T> n, AVLNode<T> parent) {
         AVLNode<T> child;
-        if (n.left != null)
-            child = n.left;
-        else
+        if (n.left != null) {
+            child = n.left; 
+        }else {
             child = n.right;
+        }
         if (parent == null) {
             root = child;
         } else {
-            if (n.key - parent.key < 0)
-                parent.left = child;
-            else
+            if (n.key - parent.key < 0) {
+                parent.left = child; 
+            }else {
                 parent.right = child;
+            }
         }
     }
 
     public boolean update(int tkey, T val) {
-        if (empty())
+        if (empty()) {
             return false;
+        }
         if (findkey(tkey)) {
             current.data = val;
             return true;
@@ -133,8 +143,9 @@ public class AVLTree<T> {
     }
 
     private void traverseSub(AVLNode<T> node, TraversalOrder ord) {
-        if (node == null)
+        if (node == null) {
             return;
+        }
 
         switch (ord) {
             case PreOrder:
@@ -160,8 +171,9 @@ public class AVLTree<T> {
     }
 
     public void deleteSub() {
-        if (current == null || root == null)
+        if (current == null || root == null) {
             return;
+        }
         int key = current.key;
         root = deleteSubRec(root, key);
         current = root;
@@ -169,8 +181,9 @@ public class AVLTree<T> {
     }
 
     private AVLNode<T> deleteSubRec(AVLNode<T> node, int key) {
-        if (node == null)
+        if (node == null) {
             return null;
+        }
         if (key < node.key) {
             node.left = deleteSubRec(node.left, key);
             return node;
@@ -184,58 +197,64 @@ public class AVLTree<T> {
     }
 
     private void deleteSubtreeNodes(AVLNode<T> node) {
-        if (node == null)
+        if (node == null) {
             return;
+        }
         deleteSubtreeNodes(node.left);
         deleteSubtreeNodes(node.right);
         node.left = node.right = null;
     }
 
     private AVLNode<T> rebalanceTree(AVLNode<T> node) {
-        if (node == null)
+        if (node == null) {
             return null;
+        }
         node.left = rebalanceTree(node.left);
         node.right = rebalanceTree(node.right);
         return rebalance(node);
     }
 
     private int height(AVLNode<T> node) {
-        if (node == null)
+        if (node == null) {
             return 0;
+        }
         int hl = height(node.left);
         int hr = height(node.right);
         int diff = hr - hl;
-        if (diff < 0)
-            node.bal = Balance.Left;
-        else if (diff > 0)
-            node.bal = Balance.Right;
-        else
+        if (diff < 0) {
+            node.bal = Balance.Left; 
+        }else if (diff > 0) {
+            node.bal = Balance.Right; 
+        }else {
             node.bal = Balance.Zero;
+        }
         return 1 + (hl > hr ? hl : hr);
     }
 
     private int balanceFactor(AVLNode<T> node) {
-        if (node == null)
+        if (node == null) {
             return 0;
+        }
         int hl = height(node.left);
         int hr = height(node.right);
         return hr - hl;
     }
 
     private AVLNode<T> rebalance(AVLNode<T> node) {
-        if (node == null)
+        if (node == null) {
             return null;
+        }
 
         int bf = balanceFactor(node);
 
-        if (bf < -1) { 
+        if (bf < -1) {
             if (balanceFactor(node.left) <= 0) {
                 node = rotateRight(node); // LL
             } else {
                 node.left = rotateLeft(node.left); // LR
                 node = rotateRight(node);
             }
-        } else if (bf > 1) { 
+        } else if (bf > 1) {
             if (balanceFactor(node.right) >= 0) {
                 node = rotateLeft(node); // RR
             } else {
@@ -243,7 +262,7 @@ public class AVLTree<T> {
                 node = rotateLeft(node);
             }
         } else {
-            height(node); 
+            height(node);
         }
         return node;
     }
@@ -265,8 +284,8 @@ public class AVLTree<T> {
         height(q);
         return q;
     }
-   
+
     public AVLNode<T> getRoot() {
-    return root;
-}
+        return root;
+    }
 }
