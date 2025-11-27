@@ -210,7 +210,7 @@ public class ManagementSystem {
                     if (stockError) {
                         System.out.println("\nOrder cancelled due to stock errors.");
                     } else if (!selectedProducts.empty()) {
-                        Order r = new Order(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
+                        Order r = new Order(newOrderId, orderCustomerId, selectedProducts, newOrderDate);
                         appendOrderToFile(ordersFile, r);
                         customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
                         System.out.println("\nOrder placed successfully!");
