@@ -14,7 +14,7 @@ public class ManagementSystem {
         // System data
         Customers customersobj = new Customers();
         Products productsobj = new Products();
-        Orders ordersobj = new Orders();
+        Orders ordersobj;
         Reviews reviewsobj = new Reviews();
 
         // File paths
@@ -26,7 +26,7 @@ public class ManagementSystem {
         // Load data from CSV files
         loadCustomers(customersFile, customersobj);
         loadProducts(productsFile, productsobj);
-        loadOrders(ordersFile, customersobj, productsobj);
+        ordersobj = loadOrders(ordersFile, customersobj, productsobj);
         loadReviews(reviewsFile, reviewsobj, customersobj, productsobj);
 
         // Main menu
