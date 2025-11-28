@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -210,7 +211,7 @@ public class ManagementSystem {
                     if (stockError) {
                         System.out.println("\nOrder cancelled due to stock errors.");
                     } else if (!selectedProducts.empty()) {
-                        Order r = new Order(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
+                        Order r = new Order(newOrderId, orderCustomerId, selectedProducts, newOrderDate);
                         appendOrderToFile(ordersFile, r);
                         customersobj.placeOrder(orderCustomerId, newOrderId, selectedProducts, newOrderDate);
                         System.out.println("\nOrder placed successfully!");
@@ -339,24 +340,24 @@ public class ManagementSystem {
                     }
                     break;
 
-                case 14: 
+                case 14:
                     showProductsInPriceRange(productsobj, sc);
                     break;
 
-                case 15: 
+                case 15:
                     System.out.println("\n* ========== TOP 3 PRODUCTS ========== *");
                     productsobj.Top3Products();
                     break;
 
-                case 16: 
+                case 16:
                     customersobj.listCustomersAlphabetically();
                     break;
 
-                case 17: 
+                case 17:
                     showReviewsForProduct(productsobj, customersobj, sc);
                     break;
 
-                case 18: 
+                case 18:
                     running = false;
                     System.out.println("\n* ========== THANK YOU ========== *");
                     break;
