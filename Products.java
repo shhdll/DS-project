@@ -262,49 +262,97 @@ public class Products {
         return sum / count;
     }
 
-    // to display all customers who reviewed a specific product
-    public void commonProducts(int productId, Customers customers) {
-        System.out.println("=== Customers Who Reviewed Product ID: " + productId + " ===");
+  // to display all customers who reviewed a specific product (sorted by customer ID)
+public void commonProducts(int productId, Customers customers) {
+    System.out.println("=== Customers Who Reviewed Product ID: " + productId + " ===");
 
-        Product product = findProductById(productId);
-        if (product == null) {
-            System.out.println("Product not found.");
-            return;
-        }
-
-        LinkedList<Review> reviews = product.getReviews();
-        if (reviews.empty()) {
-            System.out.println("No reviews for this product.");
-            return;
-        }
-
-        // Display all customers who reviewed this product
-        System.out.println("Product: " + product.getName() + " (Avg Rating: " + String.format("%.1f", calculateAverageRating(product)) + "/5)");
-        System.out.println("Reviewers:");
-
-        int count = 0;
-        reviews.findFirst();
-        while (true) {
-            Review review = reviews.retrieve();
-            // lookup for customer details per review
-            Customer reviewer = customers.findCustomerById(review.getCustomerId());
-            String reviewerName = (reviewer != null) ? reviewer.getName() : "Unknown Customer";
-
-            count++;
-            System.out.println(count + ". Customer: " + reviewerName
-                    + " (ID: " + review.getCustomerId()
-                    + "), Rating: " + review.getRating() + "/5"
-                    + ", Comment: " + review.getComment());
-
-            if (reviews.last()) {
-                break;
-            }
-            reviews.findNext();
-        }
-
-        System.out.println("=== Total: " + count + " reviews ===");
+    Product product = findProductById(productId);
+    if (product == null) {
+        System.out.println("Product not found.");
+        return;
     }
 
+    LinkedList<Review> reviews = product.getReviews();
+    if (reviews.empty()) {
+        System.out.println("No reviews for this product.");
+        return;
+    }
+
+    int size = countReviews(reviews);
+    Review[] reviewArray = new Review[size];
+
+    // copy reviews from LinkedList to array
+    fillReviewsArray(reviews, reviewArray);
+
+    // sort array by customer ID (ascending)
+    bubbleSortReviewsByCustomerId(reviewArray);
+
+    System.out.println("Product: " + product.getName() +
+            " (Avg Rating: " + String.format("%.1f", calculateAverageRating(product)) + "/5)");
+    System.out.println("Reviewers (sorted by customer ID):");
+
+    for (int i = 0; i < reviewArray.length; i++) {
+        Review review = reviewArray[i];
+
+        // lookup for customer details per review
+        Customer reviewer = customers.findCustomerById(review.getCustomerId());
+        String reviewerName = (reviewer != null) ? reviewer.getName() : "Unknown Customer";
+
+        System.out.println((i + 1) + ". Customer: " + reviewerName
+                + " (ID: " + review.getCustomerId()
+                + "), Rating: " + review.getRating() + "/5"
+                + ", Comment: " + review.getComment());
+    }
+
+    System.out.println("=== Total: " + reviewArray.length + " reviews ===");
+}
+
+// count how many reviews in the LinkedList
+private int countReviews(LinkedList<Review> reviews) {
+    if (reviews.empty()) {
+        return 0;
+    }
+
+    int count = 0;
+    reviews.findFirst();
+    while (!reviews.last()) {
+        count++;
+        reviews.findNext();
+    }
+    count++; // last review
+    return count;
+}
+
+// copy all reviews from LinkedList to array
+private void fillReviewsArray(LinkedList<Review> reviews, Review[] arr) {
+    if (reviews.empty()) {
+        return;
+    }
+
+    int index = 0;
+    reviews.findFirst();
+    while (true) {
+        arr[index++] = reviews.retrieve();
+        if (reviews.last()) {
+            break;
+        }
+        reviews.findNext();
+    }
+}
+
+// bubble sort reviews array by customer ID (ascending)
+private void bubbleSortReviewsByCustomerId(Review[] arr) {
+    int n = arr.length;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j].getCustomerId() > arr[j + 1].getCustomerId()) {
+                Review temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
     public void commonProducts(int cust1, int cust2) {
         System.out.println("=== Common products for customers " + cust1 + " & " + cust2 + " (Rated > 4.0) ===");
 
