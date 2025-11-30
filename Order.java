@@ -1,11 +1,12 @@
 public class Order {
     private int orderId;
     private int customerID;
-    private AVLTree<Product> productList; // update the list to a tree
+    private AVLTree<Product> productList; 
     private double totalPrice;
     private String orderDate;
     private String status; // "Pending", "Shipped", "Delivered", "Canceled" 
     
+    // Constructor for a new order
     public Order(int orderId, int customer, AVLTree<Product> productList, String orderDate) {
         this.orderId = orderId;
         this.customerID = customer;
@@ -13,6 +14,8 @@ public class Order {
         this.orderDate = orderDate;
         this.status = "Pending"; // default status
     }
+
+    // Default constructor
     public Order() {
         this.status = "Pending"; // default status
     }
@@ -22,34 +25,15 @@ public class Order {
     }
 
     // getters and setters
-    public int getOrderId() {
-        return orderId;
-    }
-
-    public int getOcustomer() {
-        return customerID;
-    }
-
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-
-    public String getOrderDate() {
-        return orderDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public AVLTree<Product> getProductList() {
-        return productList;
-    }
-
-    public void setStatus(String s) {
-        status = s;
-    }
+    public int getOrderId() { return orderId; }
+    public int getOcustomer() { return customerID; }
+    public double getTotalPrice() { return totalPrice; }
+    public String getOrderDate() { return orderDate;}
+    public String getStatus() { return status; }
+    public AVLTree<Product> getProductList() { return productList; }
+    public void setStatus(String s) { status = s; }
     
+
     public void displayOrderDetails() {
         System.out.println("=== Order Details ===");
         System.out.println("Order ID: " + orderId);
@@ -70,7 +54,7 @@ public class Order {
     }
 
 
-
+    // Recursive helper to print products in ascending order of product ID
    private int displayProductsInOrder(AVLNode<Product> node, int count) {
     if (node == null) return count;
 

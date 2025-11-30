@@ -1,4 +1,3 @@
-
 public class Products {
 
     private AVLTree<Product> allProducts = new AVLTree<>();
@@ -8,12 +7,12 @@ public class Products {
         return allProducts.insert(p.getProductId(), p);
     }
 
-    // remove product
+    // remove product by ID
     public boolean removeProduct(int productId) {
         return allProducts.removeKey(productId);
     }
 
-    // search for a product by ID
+    // search product by ID
     public Product findProductById(int productId) {
         if (allProducts.findkey(productId)) {
             return allProducts.retrieve();

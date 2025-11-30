@@ -1,5 +1,5 @@
 enum TraversalOrder {
-    PreOrder,
-    InOrder,
-    PostOrder
+    PreOrder, //NLR
+    InOrder,  //LNR
+    PostOrder  //LRN
 }

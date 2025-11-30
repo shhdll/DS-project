@@ -2,40 +2,43 @@ public class AVLTree<T> {
 
 AVLNode<T> root, current;
 
-    public AVLTree() {
-        root = current = null;
+    public AVLTree() {  
+        root = current = null;  //starts an empty tree
     }
 
     public boolean empty() {
         return root == null;
     }
 
+     // Retrieve the data from the current node
     public T retrieve() {
         return (current != null) ? current.data : null;
     }
 
-    // Search O(log n)
+    // Search for a key in the tree, update current to found node 
+    // O(log n)
     public boolean findkey(int tkey) {
         AVLNode<T> p = root;
         while (p != null) {
             current = p;
             if (p.key == tkey) {
-                return true;
+                return true;  // key found
             } else if (tkey < p.key) {
-                p = p.left;
+                p = p.left;  // go left
             } else {
-                p = p.right;
+                p = p.right;  // go right
             }
         }
-        return false;
+        return false;  // key not found
     }
 
-    // Insert O(log n)
+    // Insert 
+    // O(log n)
     public boolean insert(int key, T val) {
         if (findkey(key)) {
-            return false; // Duplicate key
+            return false; // prevent duplicate key
         }
-        root = insertRec(root, key, val);
+        root = insertRec(root, key, val);  // recursively insert and rebalance
         return true;
     }
 
@@ -54,15 +57,17 @@ AVLNode<T> root, current;
             return node; 
         }
 
-        // Rebalance this specific node - O(1)
+        // Rebalance this specific node 
+        // O(1)
         return rebalance(node);
     }
 
-    // Remove O(log n)
+    // Remove a key from the tree
+    // O(log n)
     public boolean removeKey(int key) {
         if (!findkey(key)) return false; // Not found
-        root = deleteRec(root, key);
-        current = root; // Reset cursor to root after delete
+        root = deleteRec(root, key);  // recursively delete and rebalance
+        current = root; // Reset cursor to root 
         return true;
     }
 
@@ -110,11 +115,10 @@ AVLNode<T> root, current;
         } else {
             return null; 
         }
-        // Rebalance the path back
-        return rebalance(node);
+        return rebalance(node);  // Rebalance the path back
     }
 
-    // Helpers for Rebalancing
+    // helpers for rebalancing
     
     private AVLNode<T> rebalance(AVLNode<T> node) {
         updateHeight(node);
@@ -162,7 +166,7 @@ AVLNode<T> root, current;
         return node;
     }
 
-    // --- Rotations with Height Updates ---
+    // Rotations with height updates
 
     private AVLNode<T> rotateRight(AVLNode<T> y) {
         AVLNode<T> x = y.left;
@@ -172,7 +176,7 @@ AVLNode<T> root, current;
         x.right = y;
         y.left = T2;
 
-        // Update heights (y first, then x)
+        // Update heights 
         updateHeight(y);
         updateHeight(x);
 
@@ -194,7 +198,7 @@ AVLNode<T> root, current;
         return y; // New root
     }
 
-    // Traversals 
+    // Traversals methods
     public void traverse(TraversalOrder ord) {
         traverseSub(root, ord);
     }
@@ -221,7 +225,7 @@ AVLNode<T> root, current;
     }
 
     private void visit(AVLNode<T> node) {
-        current = node;
+        current = node;  // mark current node during traversal
     }
     
     public AVLNode<T> getRoot() {

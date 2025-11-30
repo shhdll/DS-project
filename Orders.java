@@ -38,7 +38,7 @@ public class Orders {
 
     }
 
-    // 3 Search order by ID
+    // 4 Search order by ID
     public Order searchOrder(int ID) {
         if (orderList.findkey(ID)) {
             return orderList.retrieve();   // return order
@@ -47,7 +47,7 @@ public class Orders {
         return null;
     }
 
-    // All Orders between two dates
+    // 5 All Orders between two dates
     public String showOrdersBetween(String start, String end) {
         StringBuilder sb = new StringBuilder();
         showBetweenRec(orderList.getRoot(), start, end, sb);
@@ -98,6 +98,7 @@ public class Orders {
         return orderList;
     }
 
+    // 6 Cancel an order by order ID
     public boolean cancelOrder(int orderId) {
         if (orderList.findkey(orderId)) {
        
@@ -113,6 +114,7 @@ public class Orders {
         return false;
     }
 
+    // 7 Update order status by order ID 
     public boolean updateOrderStatus(int orderId, String newStatus) {
         if (orderList.findkey(orderId)) {
             Order o = orderList.retrieve();

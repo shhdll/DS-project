@@ -32,42 +32,16 @@ public class Product{
         }
     }
 
-    // getters and setters
-    public int getProductId() {
-        return productId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public LinkedList<Review> getReviews() {
-        return reviews;
-    }
-
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+    // Getters/Setters
+    public int getProductId() { return productId; }
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public int getStock() { return stock; }
+    public LinkedList<Review> getReviews() { return reviews; }
+    public void setProductId(int productId) { this.productId = productId; }
+    public void setName(String name) { this.name = name; }
+    public void setPrice(double price) { this.price = price; }
+    public void setStock(int stock) { this.stock = stock; }
 
     public int compareTo(Product other) {
         return this.productId - other.productId;

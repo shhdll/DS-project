@@ -1,4 +1,3 @@
-
 public class Customers {
 
     private AVLTree<Customer> allCustomers;
@@ -8,7 +7,7 @@ public class Customers {
     }
 
     // Operations:
-    // 1 Register new customer
+    // 1 Register a new customer
     public void registerCustomer(int customerId, String name, String email) {
         if (findCustomerById(customerId) != null) {
             System.out.println("Customer already exists");
@@ -17,12 +16,12 @@ public class Customers {
 
         Customer newCustomer = new Customer(customerId, name, email);
         allCustomers.insert(customerId, newCustomer);
-        // System.out.println("Customer registered successfully");
+        System.out.println("Customer registered successfully!");
     }
 
     // 2 Place a new order for a specific customer
     public void placeOrder(int customerId, int orderId, AVLTree<Product> productList, String orderDate) {
-        Customer customer = findCustomerById(customerId);
+        Customer customer = findCustomerById(customerId);  // Find customer by ID
         if (customer == null) {
             System.out.println("Customer not found :(");
             return;
@@ -55,28 +54,22 @@ public class Customers {
         if (node == null) {
             return;
         }
-        inOrderPrintOrders(node.left);
+        inOrderPrintOrders(node.left); // Traverse left subtree first
         Order o = node.data;
         System.out.println(
                 "  Order ID: " + o.getOrderId() + ", Status: " + o.getStatus() + ", Date: " + o.getOrderDate());
-        inOrderPrintOrders(node.right);
+        inOrderPrintOrders(node.right); // Traverse right subtree
     }
 
     public Customer findCustomerById(int customerId) {
-        return findCustomerRec(allCustomers.getRoot(), customerId);
+        return findCustomerRec(allCustomers.getRoot(), customerId);  // Recursive search starting from root
     }
 
-    private Customer findCustomerRec(AVLNode<Customer> node, int customerId) {
-        if (node == null) {
-            return null; // not found
-        }
-        if (node.data.getCustomerId() == customerId) {
-            return node.data;
-        } else if (customerId < node.data.getCustomerId()) {
-            return findCustomerRec(node.left, customerId);
-        } else {
-            return findCustomerRec(node.right, customerId);
-        }
+     private Customer findCustomerRec(AVLNode<Customer> node, int customerId) {
+        if (node == null) return null; // Base case: not found
+        if (node.data.getCustomerId() == customerId) return node.data; // Found customer
+        else if (customerId < node.data.getCustomerId()) return findCustomerRec(node.left, customerId); // Search left
+        else return findCustomerRec(node.right, customerId); // Search right
     }
 
     public String toString() {
@@ -156,7 +149,7 @@ public class Customers {
         inOrderGatherCustomers(node.right, arr, index);
     }
 
-    // Bubble Sort 
+    // Bubble sort 
     private void bubbleSortByName(Customer[] arr) {
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {

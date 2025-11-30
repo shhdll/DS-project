@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -12,7 +11,7 @@ public class ManagementSystem {
 
         Scanner sc = new Scanner(System.in);
 
-        // System data
+        // System data objects
         Customers customersobj = new Customers();
         Products productsobj = new Products();
         Orders ordersobj;
@@ -84,9 +83,11 @@ public class ManagementSystem {
                     System.out.print("Stock: ");
                     int stock = sc.nextInt();
                     sc.nextLine();
+
                     Product newProduct = new Product(pid, pname, price, stock);
                     boolean added = productsobj.addProduct(newProduct);
                     appendProductToFile(productsFile, newProduct);
+
                     if (added) {
                         System.out.println("Product '" + pname + "' added successfully!");
                     } else {
@@ -112,23 +113,25 @@ public class ManagementSystem {
                     System.out.print("Enter Product ID to update: ");
                     int updatePid = sc.nextInt();
                     sc.nextLine();
+
                     Product existingProduct = productsobj.findProductById(updatePid);
                     if (existingProduct == null) {
                         System.out.println("Product not found.");
                         break;
                     }
-                    System.out.print("Enter new name (or press Enter to skip): ");
+                    // Update fields
+                    System.out.print("Enter new name (press Enter to skip): ");
                     String newName = sc.nextLine();
                     if (!newName.isEmpty()) {
                         existingProduct.setName(newName);
                     }
-                    System.out.print("Enter new price (or -1 to skip): ");
+                    System.out.print("Enter new price (-1 to skip): ");
                     double newPrice = sc.nextDouble();
                     sc.nextLine();
                     if (newPrice >= 0) {
                         existingProduct.setPrice(newPrice);
                     }
-                    System.out.print("Enter new stock (or -1 to skip): ");
+                    System.out.print("Enter new stock (-1 to skip): ");
                     int newStock = sc.nextInt();
                     sc.nextLine();
                     if (newStock >= 0) {
@@ -157,7 +160,7 @@ public class ManagementSystem {
                 case 5:
                     System.out.println("\n* ========== PLACE NEW ORDER ========== *");
 
-                    // Show Out-of-Stock List before displaying available products
+                    // Display out-of-stock warning
                     System.out.println("\n--- ATTENTION: OUT-OF-STOCK WARNING ---");
                     productsobj.getOutOfStockProducts();
                     System.out.println("---------------------------------------");
@@ -187,15 +190,14 @@ public class ManagementSystem {
                         if (productId == -1) {
                             addingProducts = false;
                         } else {
-                            // Find the product in the central storage for stock check
                             Product realProduct = productsobj.findProductById(productId);
 
                             if (realProduct != null) {
                                 if (realProduct.getStock() > 0) {
-                                    // 1. Decrement Stock on the real product object
+                                    // Decrement stock on the real product object
                                     realProduct.setStock(realProduct.getStock() - 1);
 
-                                    // 2. Add product (instance) to the order list
+                                    // Add product (instance) to the order list
                                     selectedProducts.insert(realProduct.getProductId(), realProduct);
                                     System.out.println("Added: " + realProduct.getName() + " (Stock remaining: " + realProduct.getStock() + ")");
                                 } else {
@@ -247,7 +249,7 @@ public class ManagementSystem {
                     }
                     break;
 
-                // -------------------- VIEW & REVIEW MANAGEMENT --------------------
+                // -------------------- REVIEW MANAGEMENT --------------------
                 case 8:
                     System.out.println("\n* ========== VIEW CUSTOMER ORDERS ========== *");
                     System.out.print("Enter Customer ID: ");
@@ -320,10 +322,10 @@ public class ManagementSystem {
                     customersobj.extractCustomerReviews(reviewCid);
                     break;
 
-                // ADVANCED QUERIES 
+                // -------------------- ADVANCED QUERIES --------------------
                 case 12:
                     System.out.println("\n* ========== FIND COMMON REVIEWED PRODUCTS ========== *");
-                    showCommonReviewedProductsBetweenCustomers(productsobj, sc);
+                    showCommonReviewedProducts(productsobj, sc);
                     break;
 
                 case 13:
@@ -370,7 +372,7 @@ public class ManagementSystem {
         sc.close();
     }
 
-    private static void showCommonReviewedProductsBetweenCustomers(Products products, Scanner sc) {
+    private static void showCommonReviewedProducts(Products products, Scanner sc) {
         System.out.print("Enter Customer ID 1: ");
         int c1 = sc.nextInt();
         sc.nextLine();
@@ -540,7 +542,7 @@ public class ManagementSystem {
         }
     }
 
-    // writing methodes !
+    // writing methodes
     private static void appendCustomerToFile(String filePath, Customer customer) {
         try (FileWriter fw = new FileWriter(filePath, true); // true for append mode
                  PrintWriter pw = new PrintWriter(fw)) {

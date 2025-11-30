@@ -1,3 +1,5 @@
 enum Balance {
-    Left, Zero, Right
+    Left, //left subtree is taller
+    Zero,  //balanced 
+    Right  //right subtree is taller
 }

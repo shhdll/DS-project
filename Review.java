@@ -26,33 +26,15 @@ public class Review {
         this.rating = rating;
     }
 
-    public int getReviewId() {
-        return reviewId;
-    }
+   //  Getters/Setters 
+    public int getReviewId() { return reviewId; }
+    public int getProductId() { return productId; }
+    public int getRating() { return rating; }
+    public int getCustomerId() { return customerId; }
+    public String getComment() { return comment; }
+    public void setReviewId(int reviewId) { this.reviewId = reviewId; }
+    public void setProductId(int productId) { this.productId = productId; }
 
-    public int getProductId() {
-        return productId;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setReviewId(int reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
 
     public void displayReviews() {
         System.out.println("Rating: " + rating + " ★");
