@@ -16,7 +16,7 @@ public class Customers {
 
         Customer newCustomer = new Customer(customerId, name, email);
         allCustomers.insert(customerId, newCustomer);
-        System.out.println("Customer registered successfully!");
+        //System.out.println("Customer registered successfully!");
     }
 
     // 2 Place a new order for a specific customer
