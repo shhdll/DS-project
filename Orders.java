@@ -2,10 +2,6 @@ public class Orders {
 
     private AVLTree<Order> orderList = new AVLTree<>();
 
-    //public Orders() {
-    //    orderList = new LinkedList<Order>();
-    //}
-
     // Operations
     // 1 create order
     public void createOrder(int orderId, int customerID, AVLTree<Product> productList, String orderDate) {
