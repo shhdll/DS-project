@@ -3,7 +3,7 @@
 # E-Commerce Inventory & Order Management System
 
 **Course:** CSC 212 – Fall 2025  
-**Phase:** I  
+**Phase:** I & II
 **Team:**  
 ✦ Shahad  
 ✦ Jawaher  
