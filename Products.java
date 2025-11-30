@@ -46,7 +46,7 @@ public class Products {
         if (getProductsInPriceRangeRec(node.left, minPrice, maxPrice)) {
             found = true;
         }
-
+    
         Product product = node.data;
         double price = product.getPrice();
         if (price >= minPrice && price <= maxPrice) {
@@ -403,7 +403,7 @@ private void bubbleSortReviewsByCustomerId(Review[] arr) {
             }
             reviews.findNext();
         }
-        return false;
+        return false; 
     }
 
     // to display all products
