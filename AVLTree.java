@@ -1,7 +1,6 @@
 public class AVLTree<T> {
 
-    private AVLNode<T> root;
-    private AVLNode<T> current;
+AVLNode<T> root, current;
 
     public AVLTree() {
         root = current = null;
